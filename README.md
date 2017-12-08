@@ -1,0 +1,1 @@
+This MediaWiki extension removes the ability to view the source code of a page if a user does not have edit rights. Documentation can be found here: https://www.mediawiki.org/wiki/Extension:SourceProtection
