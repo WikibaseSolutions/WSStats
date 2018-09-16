@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": []
+	},
+	"wsstats-desc": "Page statistics",
+	"wsstats-i18n-welcome": "Welcome ",
+	"wsstats-title": "wsstats",
+	"wsstats-intro": "Currently supported lookups",
+	"helloworld": "Hello world"
+}

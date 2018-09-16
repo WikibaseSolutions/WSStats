@@ -1,0 +1,42 @@
+{
+	"name": "WSStats",
+	"version": "0.1.1",
+	"author": [
+		"Sen-Sai"
+	],
+	"url": "https://www.google.nl/search?num=100&newwindow=1&site=&source=hp&q=wiki+wiki+wild+wild&oq=wiki+wiki+wild+wild",
+	"descriptionmsg": "wsstats-desc",
+	"license-name": "GPL v2",
+	"type": "parserhook",
+	"AutoloadClasses": {
+		"WSStatsHooks": "WSStats.hooks.php",
+		"SpecialWSStats": "specials/SpecialWSStats.php"
+	},
+	"ExtensionMessagesFiles": {
+		"WSStatsAlias": "WSStats.i18n.alias.php"
+	},
+	"Hooks": {
+		"ParserFirstCallInit": [
+			"WSStatsHooks::onParserFirstCallInit"
+		],
+		"BeforePageDisplay": [
+			"WSStatsHooks::onBeforePageDisplay"
+		],
+		"LoadExtensionSchemaUpdates": [
+			"WSStatsHooks::addTables"
+		]
+	},
+	"MessagesDirs": {
+		"WSStats": [
+			"i18n"
+		]
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "",
+		"remoteExtPath": "WSStats"
+	},
+	"SpecialPages": {
+		"WSStats": "SpecialWSStats"
+	},
+	"manifest_version": 1
+}
