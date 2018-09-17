@@ -64,7 +64,7 @@ public static function getPageTitleFromID($id) {
 			if ($dbt === 'sqlite') {
 					$dbt = 'sql';
 			}
-			$tables = __DIR__ . "/WSStats-tables.$dbt";
+			$tables = __DIR__ . "/WSStats.$dbt";
 
 			if (file_exists($tables)) {
 					$updater->addExtensionUpdate(array('addTable', 'WSPS', $tables, true));

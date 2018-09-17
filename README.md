@@ -1,7 +1,7 @@
 # WSStats
 This MediaWiki extension counts pageviews by user
 
-
+* Version 0.1.3 : Fixed error in MySQL
 * Version 0.1.2 : Skip usergroup results
 * Version 0.1.1 : Initial release
 
