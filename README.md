@@ -15,6 +15,11 @@ Add following to LocalSettings.php
 require_once( "$IP/extensions/WSStats/WSStats.php" );
 ````
 
+Run update.php
+````
+php maintenance/update.php --skip-external-dependencies
+````
+
 #Configuration
 
 By default Anonymous users and sysops are skipped from stats recording. To change this add following to LocalSettings.php..
