@@ -19,8 +19,8 @@
 		"ParserFirstCallInit": [
 			"WSStatsHooks::onParserFirstCallInit"
 		],
-		"AfterFinalPageOutput": [
-			"WSStatsHooks::onAfterFinalPageOutput"
+		"BeforePageDisplay": [
+			"WSStatsHooks::onBeforePageDisplay"
 		],
 		"LoadExtensionSchemaUpdates": [
 			"WSStatsHooks::addTables"
