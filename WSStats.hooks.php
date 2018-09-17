@@ -82,15 +82,20 @@ public static function getPageTitleFromID($id) {
 		}
 		$db = WSStatsHooks::db_open();
 		$q=$db->query($sql);
+		if( $q === false ) {
+			return 0;
+		}
 		$row = $q->fetch_assoc();
-		return $row['count'];
+		if(!isset($row['count']) || empty($row['count'])) {
+			return 0;
+		} else return $row['count'];
 	}
 
 	public static function getMostViewedPages($dates=false) {
 		$sql = 'SELECT page_id, COUNT(*) as count from '.WSStatsHooks::$db_prefix.'WSPS GROUP BY page_id ORDER BY count DESC limit 10';
 		$db = WSStatsHooks::db_open();
-    $q=$db->query($sql);
-    if ( $q->num_rows > 0 ) {
+	    $q=$db->query($sql);
+	    if ( $q->num_rows > 0 ) {
 			$data = "{| class=\"sortable wikitable smwtable jquery-tablesorter\"\n";
 			$data .= "! Page ID\n";
 			$data .= "! Page Title\n";
@@ -167,13 +172,13 @@ public static function getPageTitleFromID($id) {
 			$dates = array();
 			$dates['b'] = WSStatsHooks::getOptionSetting($options,'start date');
 			$dates['e'] = WSStatsHooks::getOptionSetting($options,'end date');
-			if ($dates['e'] === false && $date['b'] !== false ) {
-				$dates['e'] = date("Y-m-d H:i:s");
+			if ($dates['e'] === false && $dates['b'] !== false ) {
+				$dates['e'] = gmdate("Y-m-d H:i:s");
 			}
-			if ($dates['b'] === false && $date['e'] !== false ) {
+			if ($dates['b'] === false && $dates['e'] !== false ) {
 				$dates = false;
 			}
-			if ($dates['b'] === false && $date['e'] === false ) {
+			if ($dates['b'] === false && $dates['e'] === false ) {
 				$dates = false;
 			}
 			$data = WSStatsHooks::getViewsPerPage($pid,$dates);
