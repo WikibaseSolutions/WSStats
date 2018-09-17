@@ -1,6 +1,6 @@
 {
 	"name": "WSStats",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"author": [
 		"Sen-Sai"
 	],
@@ -15,6 +15,15 @@
 	"ExtensionMessagesFiles": {
 		"WSStatsAlias": "WSStats.i18n.alias.php"
 	},
+	"config" : {
+		"WSStats" : {
+			"skip_anonymous" : true,
+			"skip_user_groups" : [
+				"sysop"
+			]
+		}
+	},
+
 	"Hooks": {
 		"ParserFirstCallInit": [
 			"WSStatsHooks::onParserFirstCallInit"

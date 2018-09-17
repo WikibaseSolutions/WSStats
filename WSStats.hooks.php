@@ -118,15 +118,27 @@ public static function getPageTitleFromID($id) {
 			$parser->setFunctionHook('wsstats', 'WSStatsHooks::wsstats');
 	}
 
+
+
 	public static function onBeforePageDisplay( outputPage &$output, Skin &$skin ) {
-		global $wgUser;
-		//echo "<pre>";
-		//print_r($wgUser);
-		//echo "<pre>";
-		//die($wgUser->getGroupMember());
+		global $wgUser, $wgWSStats;
 
+        if( isset( $wgWSStats['skip_user_groups'] ) && is_array( $wgWSStats['skip_user_groups'] ) ) {
+            $groups = $wgWSStats['skip_user_groups'];
+            foreach( $groups as $group ) {
+                if( in_array($group, $wgUser->getGroups() ) ) {
+                    return true;
+                }
+            }
+        }
 
-		// for now, we do not record an anonymous user.
+		if( isset($wgWSStats['skip_anonymous']) && $wgWSStats['skip_anonymous'] === true) {
+            if($wgUser->isAnon()) {
+                return true;
+            }
+
+        }
+
 		if($wgUser->isAnon()) {
 			$data['user_id']=0;
 		} else {
@@ -176,7 +188,6 @@ public static function getPageTitleFromID($id) {
 	public static function insertRecord($table, $vals) {
 			$dbw = wfGetDB(DB_MASTER);
 			$dbw->IngoreErrors = true;
-			//$dbr->IngoreErrors = true;
 			try {
 					$res = $dbw->insert(
 							$table,

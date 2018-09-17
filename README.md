@@ -1,8 +1,42 @@
 # WSStats
 This MediaWiki extension counts pageviews by user
 
-Version 0.1.1
 
+* Version 0.1.2 : Skip usergroup results
+* Version 0.1.1 : Initial release
+
+##Installation
+
+Create a folder called WSStats in the MediaWiki extensions folder. Copy the content from bitbucket inside this new folder.
+
+Add following to LocalSettings.php
+````
+# WSStats extensions
+require_once( "$IP/extensions/WSStats/WSStats.php" );
+````
+
+#Configuration
+
+By default Anonymous users and sysops are skipped from stats recording. To change this add following to LocalSettings.php..
+
+````
+$wgWSStats=array();
+
+# Record anonymous users
+$wgWSStats['skip_anonymous']=false;
+````
+
+To skip users in certain groups, just add the groupname to "skip_user_groups" :
+````
+$wgWSStats=array();
+
+# Record anonymous users
+$wgWSStats['skip_anonymous']=false;
+
+# Skip if user is in following groups
+$wgWSStats['skip_user_groups'][]='sysop';
+$wgWSStats['skip_user_groups'][]='admin';
+````
 
 ##For internal use
 
