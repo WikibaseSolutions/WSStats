@@ -78,8 +78,13 @@ public static function getPageTitleFromID($id) {
 		if( $dates === false ) {
 			$sql = 'SELECT page_id, COUNT(*) as count from '.WSStatsHooks::$db_prefix.'WSPS WHERE page_id=\''.$id.'\' GROUP BY page_id ORDER BY count DESC limit 1';
 		} else {
-			$sql = 'SELECT page_id, COUNT(*) as count from '.WSStatsHooks::$db_prefix.'WSPS WHERE page_id=\''.$id.'\' AND added >= \''.$dates["b"].'\' AND added <= \''.$dates['e'].'\' GROUP BY page_id ORDER BY count DESC limit 1';
+			if ($dates['e'] === false) {
+				$sql = 'SELECT page_id, COUNT(*) AS count FROM ' . WSStatsHooks::$db_prefix . 'WSPS WHERE page_id=\'' . $id . '\' AND added BETWEEN \'' . $dates["b"] . '\' AND NOW()';
+			} else {
+				$sql = 'SELECT page_id, COUNT(*) AS count FROM ' . WSStatsHooks::$db_prefix . 'WSPS WHERE page_id=\'' . $id . '\' AND added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\' GROUP BY page_id ORDER BY COUNT DESC LIMIT 1';
+			}
 		}
+
 		$db = WSStatsHooks::db_open();
 		$q=$db->query($sql);
 		if( $q === false ) {
@@ -173,7 +178,7 @@ public static function getPageTitleFromID($id) {
 			$dates['b'] = WSStatsHooks::getOptionSetting($options,'start date');
 			$dates['e'] = WSStatsHooks::getOptionSetting($options,'end date');
 			if ($dates['e'] === false && $dates['b'] !== false ) {
-				$dates['e'] = date("Y-m-d H:i:s");
+				$dates['e'] = false;
 			}
 			if ($dates['b'] === false && $dates['e'] !== false ) {
 				$dates = false;
