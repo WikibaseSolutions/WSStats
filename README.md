@@ -16,6 +16,8 @@ require_once( "$IP/extensions/WSStats/WSStats.php" );
 ````
 
 Run update.php
+*https://www.mediawiki.org/wiki/Manual:Update.php*
+
 ````
 php maintenance/update.php --skip-external-dependencies
 ````
