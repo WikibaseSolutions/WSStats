@@ -173,7 +173,7 @@ public static function getPageTitleFromID($id) {
 			$dates['b'] = WSStatsHooks::getOptionSetting($options,'start date');
 			$dates['e'] = WSStatsHooks::getOptionSetting($options,'end date');
 			if ($dates['e'] === false && $dates['b'] !== false ) {
-				$dates['e'] = gmdate("Y-m-d H:i:s");
+				$dates['e'] = date("Y-m-d H:i:s");
 			}
 			if ($dates['b'] === false && $dates['e'] !== false ) {
 				$dates = false;
