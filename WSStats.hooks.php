@@ -13,13 +13,44 @@ if (!defined('MEDIAWIKI')) {
 
 class WSStatsHooks {
 
-
-	public static $isAnon = "";
+	public static $db_prefix = "";
 
 	public function __construct() {
 		date_default_timezone_set('UTC');
-		self::$isAnon =  User::isAnon();
+		global $wgDBprefix;
+		WSStatsHooks::$db_prefix = $wgDBprefix;
 	}
+
+	public static function isAnon() {
+		return User::isAnon();
+}
+
+public static function db_open() {
+		global $wgDBserver;
+		global $wgDBname;
+		global $wgDBuser;
+		global $wgDBpassword;
+
+		$conn = new MySQLi($wgDBserver, $wgDBuser, $wgDBpassword, $wgDBname);
+		$conn->set_charset("utf8");
+		return $conn;
+}
+
+public static function db_real_escape($txt) {
+		$db = WSssdHooks::db_open();
+		$txt = $db->real_escape_string($txt);
+		$db->close();
+		return $txt;
+
+}
+
+public static function getPageTitleFromID($id) {
+	$artikel = Article::newFromId($id);
+	$title = $artikel->getTitle();
+	$furl = $title->getFullText();
+	return $furl;
+}
+
 
 /**
  * When running maintenance update with will add the database tables
@@ -43,17 +74,67 @@ class WSStatsHooks {
 			return true;
 	}
 
+	public static function getViewsPerPage($id,$dates=false) {
+		if( $dates === false ) {
+			$sql = 'SELECT page_id, COUNT(*) as count from '.WSStatsHooks::$db_prefix.'WSPS WHERE page_id=\''.$id.'\' GROUP BY page_id ORDER BY count DESC limit 1';
+		} else {
+			$sql = 'SELECT page_id, COUNT(*) as count from '.WSStatsHooks::$db_prefix.'WSPS WHERE page_id=\''.$id.'\' AND added >= \''.$dates["b"].'\' AND added <= \''.$dates['e'].'\' GROUP BY page_id ORDER BY count DESC limit 1';
+		}
+		$db = WSStatsHooks::db_open();
+		$q=$db->query($sql);
+		$row = $q->fetch_assoc();
+		return $row['count'];
+	}
+
+	public static function getMostViewedPages($dates=false) {
+		$sql = 'SELECT page_id, COUNT(*) as count from '.WSStatsHooks::$db_prefix.'WSPS GROUP BY page_id ORDER BY count DESC limit 10';
+		$db = WSStatsHooks::db_open();
+    $q=$db->query($sql);
+    if ( $q->num_rows > 0 ) {
+			$data = "{| class=\"sortable wikitable smwtable jquery-tablesorter\"\n";
+			$data .= "! Page ID\n";
+			$data .= "! Page Title\n";
+			$data .= "! Page hits\n";
+			while ($row = $q->fetch_assoc()) {
+				$data .= "|-\n";
+		  	$data .= "| " . $row['page_id'] . "\n";
+				$data .= "| " . WSStatsHooks::getPageTitleFromID($row['page_id']) . "\n";
+				$data .= "| " . $row['count'] . "\n";
+			  $data .= "|-\n";
+			}
+		$data .= "|}\n";
+		$db->close();
+		return $data;
+		}
+}
+
+	public static function getOptionSetting($options, $k) {
+		if ( isset( $options[$k] ) && $options[$k] != '' ) {
+			return $options[$k];
+		} else return false;
+	}
+
 	public static function onParserFirstCallInit(Parser &$parser) {
 			$parser->setFunctionHook('wsstats', 'WSStatsHooks::wsstats');
 	}
 
-	public static function onAfterFinalPageOutput ( $output ) {
+	public static function onBeforePageDisplay( outputPage &$output, Skin &$skin ) {
 		global $wgUser;
+		//echo "<pre>";
+		//print_r($wgUser);
+		//echo "<pre>";
+		//die($wgUser->getGroupMember());
+
 
 		// for now, we do not record an anonymous user.
-		if(WSStatsHooks::$isAnon) return true;
-		$data['user_id'] = $wgUser->getID();
-		$title = Title::newFromText( $output->getPageTitle() );
+		if($wgUser->isAnon()) {
+			$data['user_id']=0;
+		} else {
+			$data['user_id'] = $wgUser->getID();
+		}
+		$title = $output->getTitle();
+
+		if($title===null) return true;
 		$data['page_id']=$title->getArticleID();
 		if($data['page_id'] != 0) {
 			WSStatsHooks::insertRecord('WSPS', $data);
@@ -64,9 +145,31 @@ class WSStatsHooks {
 
 	public static function wsstats(Parser &$parser) {
 		//Not implemented yet
-
-		//$options = WSStatsHooks::extractOptions(array_slice(func_get_args(), 1));
-		return "ok";
+		$options = WSStatsHooks::extractOptions( array_slice( func_get_args(), 1 ) );
+		if ( isset( $options['stats'] ) ) {
+			$data = WSStatsHooks::getMostViewedPages();
+			return $data;
+		}
+		$pid = WSStatsHooks::getOptionSetting($options,'id');
+		if ( $pid !== false ) {
+			$dates = array();
+			$dates['b'] = WSStatsHooks::getOptionSetting($options,'start date');
+			$dates['e'] = WSStatsHooks::getOptionSetting($options,'end date');
+			if ($dates['e'] === false && $date['b'] !== false ) {
+				$dates['e'] = date("Y-m-d H:i:s");
+			}
+			if ($dates['b'] === false && $date['e'] !== false ) {
+				$dates = false;
+			}
+			if ($dates['b'] === false && $date['e'] === false ) {
+				$dates = false;
+			}
+			$data = WSStatsHooks::getViewsPerPage($pid,$dates);
+			if($data !== NULL) {
+				return $data;
+			} else return "";
+		}
+		return "ok, move along. Nothing to see here..";
 	}
 
 
