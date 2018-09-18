@@ -51,7 +51,7 @@ $wgWSStats['count_all_usergroups'] = true;
 Skip page with certain text in their referer url. Default action=edit and veaction=edit are ignored. This configuration option is case sensitive.
 ````
 $wgWSStats = array();
-$wgWSStats['ignore_in_url'][] = 'Template:Test;
+$wgWSStats['ignore_in_url'][] = 'Template:Test';
 $wgWSStats['ignore_in_url'][] = 'action=edit';
 ````
 
