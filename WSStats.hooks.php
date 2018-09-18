@@ -84,6 +84,7 @@ public static function getPageTitleFromID($id) {
 				$sql = 'SELECT page_id, COUNT(*) AS count FROM ' . WSStatsHooks::$db_prefix . 'WSPS WHERE page_id=\'' . $id . '\' AND added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\' GROUP BY page_id ORDER BY COUNT DESC LIMIT 1';
 			}
 		}
+
 		$db = WSStatsHooks::db_open();
 		$q=$db->query($sql);
 		if( $q === false ) {
