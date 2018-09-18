@@ -1,7 +1,7 @@
 # WSStats
 This MediaWiki extension counts pageviews by user
 
-
+* Version 0.1.3 : Fixed error in MySQL
 * Version 0.1.2 : Skip usergroup results
 * Version 0.1.1 : Initial release
 
@@ -20,23 +20,31 @@ require_once( "$IP/extensions/WSStats/WSStats.php" );
 By default Anonymous users and sysops are skipped from stats recording. To change this add following to LocalSettings.php..
 
 ````
-$wgWSStats=array();
+$wgWSStats = array();
 
 # Record anonymous users
-$wgWSStats['skip_anonymous']=false;
+$wgWSStats['skip_anonymous'] = false;
 ````
 
 To skip users in certain groups, just add the groupname to "skip_user_groups" :
 ````
-$wgWSStats=array();
+$wgWSStats = array();
 
 # Record anonymous users
-$wgWSStats['skip_anonymous']=false;
+$wgWSStats['skip_anonymous'] = false;
 
 # Skip if user is in following groups
-$wgWSStats['skip_user_groups'][]='sysop';
-$wgWSStats['skip_user_groups'][]='admin';
+$wgWSStats['skip_user_groups'][] = 'sysop';
+$wgWSStats['skip_user_groups'][] = 'admin';
 ````
+
+Count all hits
+````
+$wgWSStats = array();
+$wgWSStats['count_all'] = true;
+````
+
+***NOTE**: If you have set $wgWSStats['count_all']=true; then $wgWSStats['skip_user_groups'] and $wgWSStats['skip_anonymous'] are ignored.*
 
 ##For internal use
 
