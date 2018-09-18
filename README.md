@@ -1,6 +1,7 @@
 # WSStats
 This MediaWiki extension counts pageviews by user
 
+* Version 0.1.5 : Added more configuration options
 * Version 0.1.3 : Fixed error in MySQL
 * Version 0.1.2 : Skip usergroup results
 * Version 0.1.1 : Initial release
@@ -41,24 +42,18 @@ $wgWSStats['skip_user_groups'][] = 'admin';
 Count all hits
 ````
 $wgWSStats = array();
-$wgWSStats['count_all'] = true;
+$wgWSStats['count_all_usergroups'] = true;
 ````
 
-***NOTE**: If you have set $wgWSStats['count_all']=true; then $wgWSStats['skip_user_groups'] and $wgWSStats['skip_anonymous'] are ignored.*
+***NOTE**: If you have set $wgWSStats['count_all']=true; then $wgWSStats['skip_user_groups'] is ignored.*
 
-##For internal use
 
-=== Overal WSStats ===
-
-```
-{{#wsstats:stats}}
-```
-
-=== Calling WSStats with no arguments ===
-
-```
-{{#wsstats:}}
-```
+Skip page with certain text in their referer url. Default action=edit and veaction=edit are ignored. This configuration option is case sensitive.
+````
+$wgWSStats = array();
+$wgWSStats['ignore_in_url'][] = 'Template:Test;
+$wgWSStats['ignore_in_url'][] = 'action=edit;
+````
 
 === Ask number of hits for page id : 9868 ===
 

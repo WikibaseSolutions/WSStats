@@ -133,10 +133,28 @@ public static function getPageTitleFromID($id) {
 	public static function onBeforePageDisplay( outputPage &$output, Skin &$skin ) {
 		global $wgUser, $wgWSStats;
 
-        if( isset( $wgWSStats['skip_user_groups'] ) && is_array( $wgWSStats['skip_user_groups'] ) ) {
-            $groups = $wgWSStats['skip_user_groups'];
-            foreach( $groups as $group ) {
-                if( in_array($group, $wgUser->getGroups() ) ) {
+		if( isset( $_SERVER['HTTP_REFERER'] ) ) {
+            $ref = $_SERVER['HTTP_REFERER'];
+        } else $ref = false;
+
+
+
+		if( $wgWSStats['count_all_usergroups'] !== true ) {
+
+            if (isset($wgWSStats['skip_user_groups']) && is_array($wgWSStats['skip_user_groups'])) {
+                $groups = $wgWSStats['skip_user_groups'];
+                foreach ($groups as $group) {
+                    if (in_array($group, $wgUser->getGroups())) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        if ( isset( $wgWSStats['ignore_in_url'] ) && is_array( $wgWSStats['ignore_in_url'] ) && $ref !== false ) {
+            $ignore = $groups = $wgWSStats['ignore_in_url'];
+            foreach( $ignore as $single ) {
+                if( strpos($ref, $single) !== false ) {
                     return true;
                 }
             }
