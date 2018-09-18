@@ -46,13 +46,13 @@ $wgWSStats['count_all_usergroups'] = true;
 ````
 
 ***NOTE**: If you have set $wgWSStats['count_all']=true; then $wgWSStats['skip_user_groups'] is ignored.*
-
+''
 
 Skip page with certain text in their referer url. Default action=edit and veaction=edit are ignored. This configuration option is case sensitive.
 ````
 $wgWSStats = array();
 $wgWSStats['ignore_in_url'][] = 'Template:Test;
-$wgWSStats['ignore_in_url'][] = 'action=edit;
+$wgWSStats['ignore_in_url'][] = 'action=edit';
 ````
 
 === Ask number of hits for page id : 9868 ===
