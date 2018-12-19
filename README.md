@@ -1,6 +1,7 @@
 # WSStats
 This MediaWiki extension counts pageviews by user
 
+* Version 0.1.6 : Filter results on user or anonymous
 * Version 0.1.5 : Added more configuration options
 * Version 0.1.3 : Fixed error in MySQL
 * Version 0.1.2 : Skip usergroup results
@@ -74,4 +75,20 @@ $wgWSStats['ignore_in_url'][] = 'action=edit';
 {{#wsstats:id=714
 |start date=2018-02-01
 |end date=2018-02-08}}
+```
+
+=== Filter results on registered users or anonymous users ===
+
+```
+{{#wsstats:id=714
+|start date=2018-02-01
+|end date=2018-02-08
+|type=only anonymous}}
+```
+
+```
+{{#wsstats:id=714
+|start date=2018-02-01
+|end date=2018-02-08
+|type=only user}}
 ```

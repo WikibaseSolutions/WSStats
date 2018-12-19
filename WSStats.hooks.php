@@ -74,14 +74,23 @@ public static function getPageTitleFromID($id) {
 			return true;
 	}
 
-	public static function getViewsPerPage($id,$dates=false) {
+	public static function getViewsPerPage($id,$dates=false, $type = false) {
+	    if($type === 'only anonymous') {
+	        $type = " AND user_id = 0 ";
+        }
+        if($type === 'only user') {
+            $type = " AND user_id <> 0 ";
+        }
+        if( $type === false ) {
+            $type = '';
+        }
 		if( $dates === false ) {
-			$sql = 'SELECT page_id, COUNT(*) as count from '.WSStatsHooks::$db_prefix.'WSPS WHERE page_id=\''.$id.'\' GROUP BY page_id ORDER BY count DESC limit 1';
+			$sql = 'SELECT page_id, COUNT(*) as count from '.WSStatsHooks::$db_prefix.'WSPS WHERE page_id=\''.$id.'\' '.$type.'GROUP BY page_id ORDER BY count DESC limit 1';
 		} else {
 			if ($dates['e'] === false) {
-				$sql = 'SELECT page_id, COUNT(*) AS count FROM ' . WSStatsHooks::$db_prefix . 'WSPS WHERE page_id=\'' . $id . '\' AND added BETWEEN \'' . $dates["b"] . '\' AND NOW()';
+				$sql = 'SELECT page_id, COUNT(*) AS count FROM ' . WSStatsHooks::$db_prefix . 'WSPS WHERE page_id=\'' . $id . '\' '.$type.'AND added BETWEEN \'' . $dates["b"] . '\' AND NOW()';
 			} else {
-				$sql = 'SELECT page_id, COUNT(*) AS count FROM ' . WSStatsHooks::$db_prefix . 'WSPS WHERE page_id=\'' . $id . '\' AND added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\' GROUP BY page_id ORDER BY COUNT DESC LIMIT 1';
+				$sql = 'SELECT page_id, COUNT(*) AS count FROM ' . WSStatsHooks::$db_prefix . 'WSPS WHERE page_id=\'' . $id . '\' '.$type.'AND added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\' GROUP BY page_id ORDER BY COUNT DESC LIMIT 1';
 			}
 		}
 
@@ -192,6 +201,7 @@ public static function getPageTitleFromID($id) {
 		}
 		$pid = WSStatsHooks::getOptionSetting($options,'id');
 		if ( $pid !== false ) {
+            $type = WSStatsHooks::getOptionSetting($options,'type');
 			$dates = array();
 			$dates['b'] = WSStatsHooks::getOptionSetting($options,'start date');
 			$dates['e'] = WSStatsHooks::getOptionSetting($options,'end date');
@@ -204,7 +214,7 @@ public static function getPageTitleFromID($id) {
 			if ($dates['b'] === false && $dates['e'] === false ) {
 				$dates = false;
 			}
-			$data = WSStatsHooks::getViewsPerPage($pid,$dates);
+			$data = WSStatsHooks::getViewsPerPage($pid,$dates,$type);
 			if($data !== NULL) {
 				return $data;
 			} else return "";
