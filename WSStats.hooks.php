@@ -38,7 +38,7 @@ class WSStatsHooks {
 	}
 
 	public static function db_real_escape( $txt ) {
-		$db  = WSssdHooks::db_open();
+		$db  = WSStatsHooks::db_open();
 		$txt = $db->real_escape_string( $txt );
 		$db->close();
 
