@@ -195,7 +195,9 @@ class WSStatsHooks {
 	}
 
 	public static function onBeforePageDisplay( outputPage &$output, Skin &$skin ) {
-		global $wgUser, $wgWSStats;
+		global $wgUser;
+
+		WSStatsHooks::init();
 
 		if ( isset( $_SERVER['HTTP_REFERER'] ) ) {
 			$ref = $_SERVER['HTTP_REFERER'];
@@ -229,6 +231,7 @@ class WSStatsHooks {
 	}
 
 	private static function parserStats( $options ){
+
 		$dates  = array();
 		$format = WSStatsHooks::getOptionSetting( $options, 'format' );
 		if ( $format === false ) {
@@ -251,6 +254,7 @@ class WSStatsHooks {
 	}
 
 	public static function wsstats( Parser &$parser ) {
+		WSStatsHooks::init();
 		$options = WSStatsHooks::extractOptions( array_slice( func_get_args(), 1 ) );
 		if ( isset( $options['stats'] ) ) {
 			return WSStatsHooks::parserStats( $options );
