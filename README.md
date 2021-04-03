@@ -1,6 +1,7 @@
 # WSStats
 This MediaWiki extension counts pageviews by user
 
+* Version 0.9   : First clean-up
 * Version 0.1.7 : Show top visited pages with date range. Show as csv option
 * Version 0.1.6 : Filter results on user or anonymous
 * Version 0.1.5 : Added more configuration options

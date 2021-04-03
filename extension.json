@@ -1,6 +1,6 @@
 {
 	"name": "WSStats",
-	"version": "0.1.7",
+	"version": "0.9",
 	"author": [
 		"Sen-Sai"
 	],
@@ -10,6 +10,7 @@
 	"type": "parserhook",
 	"AutoloadClasses": {
 		"WSStatsHooks": "WSStats.hooks.php",
+		"WSStats_render": "WSStats_render.php",
 		"SpecialWSStats": "specials/SpecialWSStats.php"
 	},
 	"ExtensionMessagesFiles": {

@@ -15,14 +15,15 @@ class WSStatsHooks {
 
 	public static $db_prefix = "";
 
-	public function __construct() {
+	public static function init() {
 		date_default_timezone_set( 'UTC' );
 		global $wgDBprefix;
 		WSStatsHooks::$db_prefix = $wgDBprefix;
 	}
 
 	public static function isAnon() {
-		return User::isAnon();
+		global $wgUser;
+		return $wgUser->isAnon();
 	}
 
 	public static function db_open() {
@@ -56,7 +57,7 @@ class WSStatsHooks {
 
 
 	/**
-	 * When running maintenance update with will add the database tables
+	 * When running maintenance update witch will add the database tables
 	 *
 	 * @param [type] $updater [description]
 	 */
@@ -124,41 +125,26 @@ class WSStatsHooks {
 			}
 		}
 
+		$data = '';
 		$db = WSStatsHooks::db_open();
 		$q  = $db->query( $sql );
 		if ( $q->num_rows > 0 ) {
-			if ( $render === 'table' ) {
-				$data = "{| class=\"sortable wikitable smwtable jquery-tablesorter\"\n";
-				$data .= "! Page ID\n";
-				$data .= "! Page Title\n";
-				$data .= "! Page hits\n";
-				while ( $row = $q->fetch_assoc() ) {
-					$data .= "|-\n";
-					$data .= "| " . $row['page_id'] . "\n";
-					$data .= "| " . WSStatsHooks::getPageTitleFromID( $row['page_id'] ) . "\n";
-					$data .= "| " . $row['count'] . "\n";
-					$data .= "|-\n";
-				}
-				$data .= "|}\n";
-				$db->close();
-
-				return $data;
-			}
-			if ( $render === 'csv' ) {
-				$data = '';
-				while ( $row = $q->fetch_assoc() ) {
-					$data .= $row['page_id'] . ";" . $row['count'] . ",";
-				}
-				$data = rtrim( $data, ',' );
-				$db->close();
-
-				return $data;
+			switch( $render ) {
+				case "table":
+					$data = WSStats_render::renderTable( $q );
+					$db->close();
+					break;
+				case "csv":
+					$data = WSStats_render::renderCSV( $q );
+					$db->close();
+					break;
 			}
 		}
+		return $data;
 	}
 
 	public static function getOptionSetting( $options, $k ) {
-		if ( isset( $options[ $k ] ) && $options[ $k ] != '' ) {
+		if ( isset( $options[ $k ] ) && $options[ $k ] !== '' ) {
 			return $options[ $k ];
 		} else {
 			return false;
@@ -170,18 +156,9 @@ class WSStatsHooks {
 	}
 
 
-	public static function onBeforePageDisplay( outputPage &$output, Skin &$skin ) {
-		global $wgUser, $wgWSStats;
-
-		if ( isset( $_SERVER['HTTP_REFERER'] ) ) {
-			$ref = $_SERVER['HTTP_REFERER'];
-		} else {
-			$ref = false;
-		}
-
-
+	private static function countAllUserGroups(){
+		global $wgWSStats, $wgUser;
 		if ( $wgWSStats['count_all_usergroups'] !== true ) {
-
 			if ( isset( $wgWSStats['skip_user_groups'] ) && is_array( $wgWSStats['skip_user_groups'] ) ) {
 				$groups = $wgWSStats['skip_user_groups'];
 				foreach ( $groups as $group ) {
@@ -191,22 +168,46 @@ class WSStatsHooks {
 				}
 			}
 		}
+		return false;
+	}
 
+	private static function ignoreURL( $ref ){
+		global $wgWSStats;
 		if ( isset( $wgWSStats['ignore_in_url'] ) && is_array( $wgWSStats['ignore_in_url'] ) && $ref !== false ) {
-			$ignore = $groups = $wgWSStats['ignore_in_url'];
+			$ignore = $wgWSStats['ignore_in_url'];
 			foreach ( $ignore as $single ) {
 				if ( strpos( $ref, $single ) !== false ) {
 					return true;
 				}
 			}
 		}
+		return false;
+	}
 
+	private static function skipAnonymous(){
+		global $wgWSStats, $wgUser;
 		if ( isset( $wgWSStats['skip_anonymous'] ) && $wgWSStats['skip_anonymous'] === true ) {
 			if ( $wgUser->isAnon() ) {
 				return true;
 			}
-
 		}
+		return false;
+	}
+
+	public static function onBeforePageDisplay( outputPage &$output, Skin &$skin ) {
+		global $wgUser, $wgWSStats;
+
+		if ( isset( $_SERVER['HTTP_REFERER'] ) ) {
+			$ref = $_SERVER['HTTP_REFERER'];
+		} else {
+			$ref = false;
+		}
+
+		if( WSStatsHooks::countAllUserGroups() === true ) return true;
+
+		if( WSStatsHooks::ignoreURL( $ref ) === true ) return true;
+
+		if( WSStatsHooks::skipAnonymous() === true ) return true;
 
 		if ( $wgUser->isAnon() ) {
 			$data['user_id'] = 0;
@@ -227,28 +228,32 @@ class WSStatsHooks {
 
 	}
 
+	private static function parserStats( $options ){
+		$dates  = array();
+		$format = WSStatsHooks::getOptionSetting( $options, 'format' );
+		if ( $format === false ) {
+			$format = 'table';
+		}
+		$dates['b'] = WSStatsHooks::getOptionSetting( $options, 'start date' );
+		$dates['e'] = WSStatsHooks::getOptionSetting( $options, 'end date' );
+		if ( $dates['e'] === false && $dates['b'] !== false ) {
+			$dates['e'] = false;
+		}
+		if ( $dates['b'] === false && $dates['e'] !== false ) {
+			$dates = false;
+		}
+		if ( $dates['b'] === false && $dates['e'] === false ) {
+			$dates = false;
+		}
+		$data = WSStatsHooks::getMostViewedPages( $dates, $format );
+
+		return $data;
+	}
+
 	public static function wsstats( Parser &$parser ) {
 		$options = WSStatsHooks::extractOptions( array_slice( func_get_args(), 1 ) );
 		if ( isset( $options['stats'] ) ) {
-			$dates  = array();
-			$format = WSStatsHooks::getOptionSetting( $options, 'format' );
-			if ( $format === false ) {
-				$format = 'table';
-			}
-			$dates['b'] = WSStatsHooks::getOptionSetting( $options, 'start date' );
-			$dates['e'] = WSStatsHooks::getOptionSetting( $options, 'end date' );
-			if ( $dates['e'] === false && $dates['b'] !== false ) {
-				$dates['e'] = false;
-			}
-			if ( $dates['b'] === false && $dates['e'] !== false ) {
-				$dates = false;
-			}
-			if ( $dates['b'] === false && $dates['e'] === false ) {
-				$dates = false;
-			}
-			$data = WSStatsHooks::getMostViewedPages( $dates, $format );
-
-			return $data;
+			return WSStatsHooks::parserStats( $options );
 		}
 		$pid = WSStatsHooks::getOptionSetting( $options, 'id' );
 		if ( $pid !== false ) {
