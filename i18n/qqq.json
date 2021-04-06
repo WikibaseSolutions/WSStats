@@ -4,9 +4,9 @@
 			"Sen-Sai"
 		]
 	},
-	"WSStats-desc": "Description",
-	"WSStats-i18n-welcome": "Used to greet the user when reading the i18n/??.json file.",
-	"WSStats-title": "Page title of the HelloWorld special page.\n{{Identical|Hello World}}",
-	"WSStats--intro": "Text displayed on the HelloWorld SpecialPage.",
-	"helloworld": "Text of the link to the HelloWorld special page on SpecialPages.\n{{Identical|Hello World}}"
+	"wsstats-desc": "Description",
+	"wsstats-i18n-welcome": "Used to greet the user when reading the i18n/??.json file.",
+	"wsstats-title": "Page title of the WSStats special page.\n",
+	"wsstats--intro": "Text displayed on the WSStats SpecialPage.",
+	"wsstats": "General name"
 }

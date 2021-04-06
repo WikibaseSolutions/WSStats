@@ -1,6 +1,7 @@
 # WSStats
 This MediaWiki extension counts pageviews by user
 
+* Version 0.8.0 : Clean Up
 * Version 0.1.9 : Fetch Title changes
 * Version 0.1.8 : Removed dbprefix class variable
 * Version 0.1.7 : Show top visited pages with date range. Show as csv option

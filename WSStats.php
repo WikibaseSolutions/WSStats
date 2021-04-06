@@ -2,11 +2,11 @@
 /**
  * The WSStats extension to MediaWiki allows to track page hits
  *
- * @version 1.0.0 2017-12-07
+ * @version 0.8.0 2021
  *
  * @author Sen-Sai
  *
- * @copyright Copyright (C) 2017, Sen-Sai
+ * @copyright Copyright (C) 2017-2021, Sen-Sai
  *
  * @license https://www.gnu.org/copyleft/gpl.html GNU General Public License 2.0 or later
  */

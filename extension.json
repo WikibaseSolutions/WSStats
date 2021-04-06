@@ -1,19 +1,21 @@
 {
 	"name": "WSStats",
-	"version": "0.1.9",
+	"version": "0.8.0",
 	"author": [
 		"Sen-Sai"
 	],
-	"url": "https://www.google.nl/search?num=100&newwindow=1&site=&source=hp&q=wiki+wiki+wild+wild&oq=wiki+wiki+wild+wild",
+	"url": "https://github.com/WikibaseSolutions/WSStats",
 	"descriptionmsg": "wsstats-desc",
 	"license-name": "GPL v2",
 	"type": "parserhook",
 	"AutoloadClasses": {
 		"WSStatsHooks": "WSStats.hooks.php",
+		"WSStatsExport": "WSStatsExport.class.php",
 		"SpecialWSStats": "specials/SpecialWSStats.php"
 	},
 	"ExtensionMessagesFiles": {
-		"WSStatsAlias": "WSStats.i18n.alias.php"
+		"WSStatsAlias": "WSStats.i18n.alias.php",
+		"WSStatsMagic": "WSStats.i18n.magic.php"
 	},
 	"config" : {
 		"WSStats" : {
