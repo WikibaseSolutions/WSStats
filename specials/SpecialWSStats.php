@@ -22,7 +22,8 @@ class SpecialWSStats extends SpecialPage {
 	public function execute( $sub ) {
 
         $out = $this->getOutput();
-				$out->setPageTitle( "WSStats" );
+        $out->setPageTitle( "WSStats" );
+        $out->addHTML('<p>Soon..</p>');
         return;
 	}
 

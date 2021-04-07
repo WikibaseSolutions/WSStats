@@ -76,6 +76,32 @@ class WSStatsHooks {
 		return $furl;
 	}
 
+	/**
+	 * Implements AdminLinks hook from Extension:Admin_Links.
+	 *
+	 * @param ALTree &$adminLinksTree
+	 * @return bool
+	 */
+	public static function addToAdminLinks( ALTree &$adminLinksTree ) {
+		global $wgServer;
+		$wsSection = $adminLinksTree->getSection( 'WikiBase Solutions' );
+		if ( is_null( $wsSection ) ) {
+			$section = new ALSection( 'WikiBase Solutions' );
+			$adminLinksTree->addSection( $section, wfMessage( 'adminlinks_general' )->text() );
+			$wsSection = $adminLinksTree->getSection( 'WikiBase Solutions' );
+			$extensionsRow = new ALRow( 'extensions' );
+			$wsSection->addRow( $extensionsRow );
+		}
+
+		$extensionsRow = $wsSection->getRow( 'extensions' );
+
+		if ( is_null( $extensionsRow) ) {
+			$extensionsRow = new ALRow( 'extensions' );
+			$wsSection->addRow( $extensionsRow );
+		}
+		$extensionsRow->addItem( ALItem::newFromExternalLink( $wgServer.'/index.php/Special:WSStats', 'WS Statistics' ) );
+		return true;
+	}
 
 	/**
 	 * When running maintenance update with will add the database tables

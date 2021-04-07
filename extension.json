@@ -1,6 +1,6 @@
 {
 	"name": "WSStats",
-	"version": "0.8.0",
+	"version": "0.8.1",
 	"author": [
 		"Sen-Sai"
 	],
@@ -40,6 +40,9 @@
 		],
 		"LoadExtensionSchemaUpdates": [
 			"WSStatsHooks::addTables"
+		],
+		"AdminLinks": [
+			"WSStatsHooks::addToAdminLinks"
 		]
 	},
 	"MessagesDirs": {
