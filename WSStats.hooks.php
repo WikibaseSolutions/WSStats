@@ -80,6 +80,7 @@ class WSStatsHooks {
 	 * Implements AdminLinks hook from Extension:Admin_Links.
 	 *
 	 * @param ALTree &$adminLinksTree
+	 *
 	 * @return bool
 	 */
 	public static function addToAdminLinks( ALTree &$adminLinksTree ) {
@@ -88,18 +89,20 @@ class WSStatsHooks {
 		if ( is_null( $wsSection ) ) {
 			$section = new ALSection( 'WikiBase Solutions' );
 			$adminLinksTree->addSection( $section, wfMessage( 'adminlinks_general' )->text() );
-			$wsSection = $adminLinksTree->getSection( 'WikiBase Solutions' );
+			$wsSection     = $adminLinksTree->getSection( 'WikiBase Solutions' );
 			$extensionsRow = new ALRow( 'extensions' );
 			$wsSection->addRow( $extensionsRow );
 		}
 
 		$extensionsRow = $wsSection->getRow( 'extensions' );
 
-		if ( is_null( $extensionsRow) ) {
+		if ( is_null( $extensionsRow ) ) {
 			$extensionsRow = new ALRow( 'extensions' );
 			$wsSection->addRow( $extensionsRow );
 		}
-		$extensionsRow->addItem( ALItem::newFromExternalLink( $wgServer.'/index.php/Special:WSStats', 'WS Statistics' ) );
+		$extensionsRow->addItem( ALItem::newFromExternalLink( $wgServer . '/index.php/Special:WSStats',
+			'WS Statistics' ) );
+
 		return true;
 	}
 
@@ -131,10 +134,11 @@ class WSStatsHooks {
 	 * @param int $id
 	 * @param array|false $dates
 	 * @param string|false $type
+	 * @param bool $unique
 	 *
 	 * @return int|mixed
 	 */
-	public static function getViewsPerPage( int $id, $dates = false, $type = false ) {
+	public static function getViewsPerPage( int $id, $dates = false, $type = false, bool $unique = false ) {
 		global $wgDBprefix;
 		if ( $type === 'only anonymous' ) {
 			$type = " AND user_id = 0 ";
@@ -145,15 +149,22 @@ class WSStatsHooks {
 		if ( $type === false ) {
 			$type = '';
 		}
+		$cnt = '*';
+		if ( $unique ) {
+			$cnt = 'DISTINCT(user_id)';
+		}
+
 		if ( $dates === false ) {
-			$sql = 'SELECT page_id, COUNT(*) AS count FROM ' . $wgDBprefix . 'WSPS WHERE page_id=\'' . $id . '\' ' . $type . 'GROUP BY page_id ORDER BY count DESC LIMIT 1';
+			$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE page_id=\'' . $id . '\' ' . $type . 'GROUP BY page_id ORDER BY count DESC LIMIT 1';
 		} else {
 			if ( $dates['e'] === false ) {
-				$sql = 'SELECT page_id, COUNT(*) AS count FROM ' . $wgDBprefix . 'WSPS WHERE page_id=\'' . $id . '\' ' . $type . 'AND added BETWEEN \'' . $dates["b"] . '\' AND NOW()';
+				$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE page_id=\'' . $id . '\' ' . $type . 'AND added BETWEEN \'' . $dates["b"] . '\' AND NOW()';
 			} else {
-				$sql = 'SELECT page_id, COUNT(*) AS count FROM ' . $wgDBprefix . 'WSPS WHERE page_id=\'' . $id . '\' ' . $type . 'AND added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\' GROUP BY page_id ORDER BY COUNT DESC LIMIT 1';
+				$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE page_id=\'' . $id . '\' ' . $type . 'AND added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\' GROUP BY page_id ORDER BY COUNT DESC LIMIT 1';
 			}
 		}
+
+		
 
 		$db = WSStatsHooks::db_open();
 
@@ -173,20 +184,29 @@ class WSStatsHooks {
 	/**
 	 * @param array|false $dates
 	 * @param string $render
+	 * @param bool $unique
 	 *
 	 * @return string
 	 */
-	public static function getMostViewedPages( $dates = false, string $render = "table" ): string {
+	public static function getMostViewedPages(
+		$dates = false,
+		string $render = "table",
+		bool $unique = false
+	): string {
 
 		global $wgDBprefix;
 
+		$cnt = '*';
+		if ( $unique ) {
+			$cnt = 'DISTINCT(user_id)';
+		}
 		if ( $dates === false ) {
-			$sql = 'SELECT page_id, COUNT(*) AS count FROM ' . $wgDBprefix . 'WSPS GROUP BY page_id ORDER BY count DESC LIMIT 10';
+			$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS GROUP BY page_id ORDER BY count DESC LIMIT 10';
 		} else {
 			if ( $dates['e'] === false ) {
-				$sql = 'SELECT page_id, COUNT(*) AS count FROM ' . $wgDBprefix . 'WSPS WHERE added BETWEEN \'' . $dates["b"] . '\' AND NOW() GROUP BY page_id ORDER BY count DESC LIMIT 10';
+				$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE added BETWEEN \'' . $dates["b"] . '\' AND NOW() GROUP BY page_id ORDER BY count DESC LIMIT 10';
 			} else {
-				$sql = 'SELECT page_id, COUNT(*) AS count FROM ' . $wgDBprefix . 'WSPS WHERE added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\' GROUP BY page_id ORDER BY COUNT DESC LIMIT 10';
+				$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\' GROUP BY page_id ORDER BY COUNT DESC LIMIT 10';
 			}
 		}
 
@@ -207,20 +227,30 @@ class WSStatsHooks {
 				return $data;
 			}
 		}
+
 		return "";
 	}
 
 	/**
 	 * @param array $options
 	 * @param string $k
+	 * @param bool $checkEmpty
 	 *
-	 * @return false|mixed
+	 * @return bool|mixed
 	 */
-	public static function getOptionSetting( array $options, string $k ) {
-		if ( isset( $options[ $k ] ) && $options[ $k ] != '' ) {
-			return $options[ $k ];
+	public static function getOptionSetting( array $options, string $k, bool $checkEmpty = true ) {
+		if ( $checkEmpty ) {
+			if ( isset( $options[ $k ] ) && $options[ $k ] != '' ) {
+				return $options[ $k ];
+			} else {
+				return false;
+			}
 		} else {
-			return false;
+			if ( isset( $options[ $k ] ) ) {
+				return true;
+			} else {
+				return false;
+			}
 		}
 	}
 
@@ -247,6 +277,7 @@ class WSStatsHooks {
 				}
 			}
 		}
+
 		return false;
 
 	}
@@ -266,6 +297,7 @@ class WSStatsHooks {
 				}
 			}
 		}
+
 		return false;
 
 	}
@@ -280,6 +312,7 @@ class WSStatsHooks {
 				return true;
 			}
 		}
+
 		return false;
 	}
 
@@ -336,6 +369,7 @@ class WSStatsHooks {
 	 */
 	public static function wsstats( Parser &$parser ) {
 		$options = WSStatsHooks::extractOptions( array_slice( func_get_args(), 1 ) );
+		$unique  = WSStatsHooks::getOptionSetting( $options, 'unique', true );
 		if ( isset( $options['stats'] ) ) {
 			$dates  = array();
 			$format = WSStatsHooks::getOptionSetting( $options, 'format' );
@@ -353,7 +387,7 @@ class WSStatsHooks {
 			if ( $dates['b'] === false && $dates['e'] === false ) {
 				$dates = false;
 			}
-			$data = WSStatsHooks::getMostViewedPages( $dates, $format );
+			$data = WSStatsHooks::getMostViewedPages( $dates, $format, $unique );
 
 			return $data;
 		}
@@ -372,7 +406,7 @@ class WSStatsHooks {
 			if ( $dates['b'] === false && $dates['e'] === false ) {
 				$dates = false;
 			}
-			$data = WSStatsHooks::getViewsPerPage( $pid, $dates, $type );
+			$data = WSStatsHooks::getViewsPerPage( $pid, $dates, $type, $unique );
 			if ( $data !== null ) {
 				return $data;
 			} else {
