@@ -23,21 +23,26 @@ Add following to LocalSettings.php
 wfLoadExtension( 'WSStats' );
 ````
 
+Run the [update script](https://www.mediawiki.org/wiki/Manual:Update.php) which will automatically create the necessary database tables that this extension needs.
+
+Navigate to Special:Version on your wiki to verify that the extension is successfully installed.
+
 #Configuration
 
 By default Anonymous users and sysops are skipped from stats recording. To change this add following to LocalSettings.php..
 
+Start with
 ````
 $wgWSStats = array();
-
+````
+Allow statistics for anonymous users..
+````
 # Record anonymous users
 $wgWSStats['skip_anonymous'] = false;
 ````
 
 To skip users in certain groups, just add the groupname to "skip_user_groups" :
 ````
-$wgWSStats = array();
-
 # Record anonymous users
 $wgWSStats['skip_anonymous'] = false;
 
@@ -62,7 +67,8 @@ $wgWSStats['ignore_in_url'][] = 'Template:Test';
 $wgWSStats['ignore_in_url'][] = 'action=edit';
 ````
 
-#Usage
+#Using the parser function
+To retrieve statistics you can use the following parser functions :
 
 #### Ask number of hits for page id : 9868
 This returns a number
