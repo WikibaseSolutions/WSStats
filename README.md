@@ -1,6 +1,7 @@
 # WSStats
 This MediaWiki extension counts pageviews by user
 
+* Version 1.0.0 : Added support for setting limit and export as WSArrays
 * Version 0.8.2 : Added support for filtering only unique visitors
 * Version 0.8.1 : Added support for AdminLinks
 * Version 0.8.0 : Clean Up
@@ -128,6 +129,14 @@ This returns a csv
 |format:csv}}
 ```
 
+#### Get the top ten pages sorted by hits and insert in a WSArrays variable
+This returns nothing but only sets WSArray key. Nothing happens when the WSArrays extension is not installed
+```
+{{#wsstats:stats
+|format:wsarrays}}
+|name=<wsarray key name>}}
+```
+
 #### For all queries you can add a unique identifier to only return unique views
 This returns a table
 ```
@@ -140,4 +149,12 @@ This returns a table
 ```
 {{#wsstats:stats
 |unique}}
+```
+
+#### For all top ten stats queries you can add limit to get less or more than ten results
+This returns a table
+```
+{{#wsstats:stats
+|unique
+|limit=20}}
 ```

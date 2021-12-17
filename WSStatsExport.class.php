@@ -51,4 +51,30 @@ class WSStatsExport {
 		return $data;
 	}
 
+	/**
+	 * @param string $name Name of the extension
+	 *
+	 * @return mixed
+	 */
+	private function extensionInstalled ( $name ) {
+		return extensionRegistry::getInstance()->isLoaded( $name );
+	}
+
+
+	public function renderWSArrays( mysqli_result $q, string $wsArrayVariableName ) {
+		if( ! $this->extensionInstalled( 'WSArrays' ) || ! class_exists( 'ComplexArrayWrapper' ) ) {
+			return "";
+		}
+		$wsWrapper = new ComplexArrayWrapper();
+		$result = array();
+		$t = 0;
+		while ( $row = $q->fetch_assoc() ) {
+			$result[$t]['pageid'] = $row['page_id'];
+			$result[$t]['count'] = $row['count'];
+			$t++;
+		}
+		$wsWrapper->on( $wsArrayVariableName )->set( $result );
+		return "";
+	}
+
 }

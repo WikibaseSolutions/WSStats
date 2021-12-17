@@ -185,13 +185,16 @@ class WSStatsHooks {
 	 * @param array|false $dates
 	 * @param string $render
 	 * @param bool $unique
+	 * @param string $variable
 	 *
 	 * @return string
 	 */
 	public static function getMostViewedPages(
 		$dates = false,
 		string $render = "table",
-		bool $unique = false
+		bool $unique = false,
+		string $variable = "",
+		int $limit = 10
 	): string {
 
 		global $wgDBprefix;
@@ -201,34 +204,38 @@ class WSStatsHooks {
 			$cnt = 'DISTINCT(user_id)';
 		}
 		if ( $dates === false ) {
-			$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS GROUP BY page_id ORDER BY count DESC LIMIT 10';
+			$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS GROUP BY page_id ORDER BY count DESC LIMIT ' . $limit;
 		} else {
 			if ( $dates['e'] === false ) {
-				$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE added BETWEEN \'' . $dates["b"] . '\' AND NOW() GROUP BY page_id ORDER BY count DESC LIMIT 10';
+				$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE added BETWEEN \'' . $dates["b"] . '\' AND NOW() GROUP BY page_id ORDER BY count DESC LIMIT '. $limit;
 			} else {
-				$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\' GROUP BY page_id ORDER BY COUNT DESC LIMIT 10';
+				$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\' GROUP BY page_id ORDER BY COUNT DESC LIMIT ' . $limit;
 			}
 		}
 
 		$db = WSStatsHooks::db_open();
 		$q  = $db->query( $sql );
+		$data = "";
 		if ( $q->num_rows > 0 ) {
 			$renderMethod = new WSStatsExport();
-			if ( $render === 'table' ) {
-				$data = $renderMethod->renderTable( $q );
-				$db->close();
-
-				return $data;
-			}
-			if ( $render === 'csv' ) {
-				$data = $renderMethod->renderCSV( $q );
-				$db->close();
-
-				return $data;
+			switch( $render ) {
+				case "table":
+					$data = $renderMethod->renderTable( $q );
+					$db->close();
+					break;
+				case "csv":
+					$data = $renderMethod->renderCSV( $q );
+					$db->close();
+					break;
+				case "wsarrays":
+					$data = $renderMethod->renderWSArrays( $q, $variable );
+					break;
+				default:
+					$data = "";
 			}
 		}
 
-		return "";
+		return $data;
 	}
 
 	/**
@@ -369,12 +376,22 @@ class WSStatsHooks {
 	 */
 	public static function wsstats( Parser &$parser ) {
 		$options = WSStatsHooks::extractOptions( array_slice( func_get_args(), 1 ) );
-		$unique  = WSStatsHooks::getOptionSetting( $options, 'unique', true );
+		$unique  = WSStatsHooks::getOptionSetting( $options, 'unique', false );
+		$limit  = WSStatsHooks::getOptionSetting( $options, 'limit' );
+		if( false === $limit ) $limit = 10;
 		if ( isset( $options['stats'] ) ) {
 			$dates  = array();
+			$wsArrayName = "";
 			$format = WSStatsHooks::getOptionSetting( $options, 'format' );
+
 			if ( $format === false ) {
 				$format = 'table';
+			}
+			if( strtolower( $format ) === 'wsarrays' ) {
+				$wsArrayName = WSStatsHooks::getOptionSetting( $options, 'name' );
+				if( false === $wsArrayName ) {
+					$format = 'table';
+				}
 			}
 			$dates['b'] = WSStatsHooks::getOptionSetting( $options, 'start date' );
 			$dates['e'] = WSStatsHooks::getOptionSetting( $options, 'end date' );
@@ -387,7 +404,7 @@ class WSStatsHooks {
 			if ( $dates['b'] === false && $dates['e'] === false ) {
 				$dates = false;
 			}
-			$data = WSStatsHooks::getMostViewedPages( $dates, $format, $unique );
+			$data = WSStatsHooks::getMostViewedPages( $dates, $format, $unique, $wsArrayName, $limit );
 
 			return $data;
 		}
