@@ -7,7 +7,6 @@
  *
  */
 
-
 if ( ! defined( 'MEDIAWIKI' ) ) {
 	die( 'This file is a MediaWiki extension, it is not a valid entry point' );
 }
@@ -37,13 +36,18 @@ class WSStatsHooks {
 	/**
 	 * @return MySQLi
 	 */
-	public static function db_open(): MySQLI {
+	public static function db_open() : MySQLI {
 		global $wgDBserver;
 		global $wgDBname;
 		global $wgDBuser;
 		global $wgDBpassword;
 
-		$conn = new MySQLi( $wgDBserver, $wgDBuser, $wgDBpassword, $wgDBname );
+		$conn = new MySQLi(
+			$wgDBserver,
+			$wgDBuser,
+			$wgDBpassword,
+			$wgDBname
+		);
 		$conn->set_charset( "utf8" );
 
 		return $conn;
@@ -54,13 +58,12 @@ class WSStatsHooks {
 	 *
 	 * @return string
 	 */
-	public static function db_real_escape( string $txt ): string {
+	public static function db_real_escape( string $txt ) : string {
 		$db  = WSStatsHooks::db_open();
 		$txt = $db->real_escape_string( $txt );
 		$db->close();
 
 		return $txt;
-
 	}
 
 	/**
@@ -69,11 +72,9 @@ class WSStatsHooks {
 	 * @return mixed
 	 */
 	public static function getPageTitleFromID( $id ) {
-		//$artikel = Article::newFromId( $id );
 		$title = Title::newFromID( $id );
-		$furl  = $title->getFullText();
 
-		return $furl;
+		return $title->getFullText();
 	}
 
 	/**
@@ -88,7 +89,10 @@ class WSStatsHooks {
 		$wsSection = $adminLinksTree->getSection( 'WikiBase Solutions' );
 		if ( is_null( $wsSection ) ) {
 			$section = new ALSection( 'WikiBase Solutions' );
-			$adminLinksTree->addSection( $section, wfMessage( 'adminlinks_general' )->text() );
+			$adminLinksTree->addSection(
+				$section,
+				wfMessage( 'adminlinks_general' )->text()
+			);
 			$wsSection     = $adminLinksTree->getSection( 'WikiBase Solutions' );
 			$extensionsRow = new ALRow( 'extensions' );
 			$wsSection->addRow( $extensionsRow );
@@ -100,8 +104,12 @@ class WSStatsHooks {
 			$extensionsRow = new ALRow( 'extensions' );
 			$wsSection->addRow( $extensionsRow );
 		}
-		$extensionsRow->addItem( ALItem::newFromExternalLink( $wgServer . '/index.php/Special:WSStats',
-			'WS Statistics' ) );
+		$extensionsRow->addItem(
+			ALItem::newFromExternalLink(
+				$wgServer . '/index.php/Special:WSStats',
+				'WS Statistics'
+			)
+		);
 
 		return true;
 	}
@@ -122,7 +130,13 @@ class WSStatsHooks {
 		$tables = __DIR__ . "/WSStats.$dbt";
 
 		if ( file_exists( $tables ) ) {
-			$updater->addExtensionUpdate( array( 'addTable', 'WSPS', $tables, true ) );
+			$updater->addExtensionUpdate(
+				array(
+					'addTable',
+					'WSPS',
+					$tables,
+					true
+				) );
 		} else {
 			throw new MWException( "WSStats does not support $dbt." );
 		}
@@ -164,10 +178,7 @@ class WSStatsHooks {
 			}
 		}
 
-		
-
 		$db = WSStatsHooks::db_open();
-
 
 		$q = $db->query( $sql );
 		if ( $q === false ) {
@@ -186,6 +197,7 @@ class WSStatsHooks {
 	 * @param string $render
 	 * @param bool $unique
 	 * @param string $variable
+	 * @param int $limit
 	 *
 	 * @return string
 	 */
@@ -195,8 +207,7 @@ class WSStatsHooks {
 		bool $unique = false,
 		string $variable = "",
 		int $limit = 10
-	): string {
-
+	) : string {
 		global $wgDBprefix;
 
 		$cnt = '*';
@@ -207,18 +218,18 @@ class WSStatsHooks {
 			$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS GROUP BY page_id ORDER BY count DESC LIMIT ' . $limit;
 		} else {
 			if ( $dates['e'] === false ) {
-				$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE added BETWEEN \'' . $dates["b"] . '\' AND NOW() GROUP BY page_id ORDER BY count DESC LIMIT '. $limit;
+				$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE added BETWEEN \'' . $dates["b"] . '\' AND NOW() GROUP BY page_id ORDER BY count DESC LIMIT ' . $limit;
 			} else {
 				$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\' GROUP BY page_id ORDER BY COUNT DESC LIMIT ' . $limit;
 			}
 		}
 
-		$db = WSStatsHooks::db_open();
-		$q  = $db->query( $sql );
+		$db   = WSStatsHooks::db_open();
+		$q    = $db->query( $sql );
 		$data = "";
 		if ( $q->num_rows > 0 ) {
 			$renderMethod = new WSStatsExport();
-			switch( $render ) {
+			switch ( $render ) {
 				case "table":
 					$data = $renderMethod->renderTable( $q );
 					$db->close();
@@ -228,7 +239,10 @@ class WSStatsHooks {
 					$db->close();
 					break;
 				case "wsarrays":
-					$data = $renderMethod->renderWSArrays( $q, $variable );
+					$data = $renderMethod->renderWSArrays(
+						$q,
+						$variable
+					);
 					break;
 				default:
 					$data = "";
@@ -247,13 +261,13 @@ class WSStatsHooks {
 	 */
 	public static function getOptionSetting( array $options, string $k, bool $checkEmpty = true ) {
 		if ( $checkEmpty ) {
-			if ( isset( $options[ $k ] ) && $options[ $k ] != '' ) {
-				return $options[ $k ];
+			if ( isset( $options[$k] ) && $options[$k] != '' ) {
+				return $options[$k];
 			} else {
 				return false;
 			}
 		} else {
-			if ( isset( $options[ $k ] ) ) {
+			if ( isset( $options[$k] ) ) {
 				return true;
 			} else {
 				return false;
@@ -265,20 +279,25 @@ class WSStatsHooks {
 	 * @param Parser $parser
 	 */
 	public static function onParserFirstCallInit( Parser &$parser ) {
-		$parser->setFunctionHook( 'wsstats', 'WSStatsHooks::wsstats' );
+		$parser->setFunctionHook(
+			'wsstats',
+			'WSStatsHooks::wsstats'
+		);
 	}
 
 	/**
 	 * @return bool
 	 */
-	private static function countAllUserGroups(): bool {
+	private static function countAllUserGroups() : bool {
 		global $wgUser, $wgWSStats;
 		if ( $wgWSStats['count_all_usergroups'] !== true ) {
-
 			if ( isset( $wgWSStats['skip_user_groups'] ) && is_array( $wgWSStats['skip_user_groups'] ) ) {
 				$groups = $wgWSStats['skip_user_groups'];
 				foreach ( $groups as $group ) {
-					if ( in_array( $group, $wgUser->getGroups() ) ) {
+					if ( in_array(
+						$group,
+						$wgUser->getGroups()
+					) ) {
 						return true;
 					}
 				}
@@ -286,7 +305,6 @@ class WSStatsHooks {
 		}
 
 		return false;
-
 	}
 
 	/**
@@ -294,25 +312,27 @@ class WSStatsHooks {
 	 *
 	 * @return bool
 	 */
-	private static function ignoreInUrl( $ref ): bool {
+	private static function ignoreInUrl( $ref ) : bool {
 		global $wgWSStats;
 		if ( isset( $wgWSStats['ignore_in_url'] ) && is_array( $wgWSStats['ignore_in_url'] ) && $ref !== false ) {
 			$ignore = $groups = $wgWSStats['ignore_in_url'];
 			foreach ( $ignore as $single ) {
-				if ( strpos( $ref, $single ) !== false ) {
+				if ( strpos(
+						 $ref,
+						 $single
+					 ) !== false ) {
 					return true;
 				}
 			}
 		}
 
 		return false;
-
 	}
 
 	/**
 	 * @return bool
 	 */
-	private static function skipAnonymous(): bool {
+	private static function skipAnonymous() : bool {
 		global $wgUser, $wgWSStats;
 		if ( isset( $wgWSStats['skip_anonymous'] ) && $wgWSStats['skip_anonymous'] === true ) {
 			if ( $wgUser->isAnon() ) {
@@ -330,7 +350,7 @@ class WSStatsHooks {
 	 *
 	 * @return bool
 	 */
-	public static function onBeforePageDisplay( outputPage &$output, Skin &$skin ): bool {
+	public static function onBeforePageDisplay( outputPage &$output, Skin &$skin ) : bool {
 		global $wgUser;
 
 		if ( isset( $_SERVER['HTTP_REFERER'] ) ) {
@@ -349,7 +369,6 @@ class WSStatsHooks {
 			return true;
 		}
 
-
 		if ( $wgUser->isAnon() ) {
 			$data['user_id'] = 0;
 		} else {
@@ -362,11 +381,13 @@ class WSStatsHooks {
 		}
 		$data['page_id'] = $title->getArticleID();
 		if ( $data['page_id'] != 0 ) {
-			WSStatsHooks::insertRecord( 'WSPS', $data );
+			WSStatsHooks::insertRecord(
+				'WSPS',
+				$data
+			);
 		}
 
 		return true;
-
 	}
 
 	/**
@@ -375,26 +396,52 @@ class WSStatsHooks {
 	 * @return int|mixed|string
 	 */
 	public static function wsstats( Parser &$parser ) {
-		$options = WSStatsHooks::extractOptions( array_slice( func_get_args(), 1 ) );
-		$unique  = WSStatsHooks::getOptionSetting( $options, 'unique', false );
-		$limit  = WSStatsHooks::getOptionSetting( $options, 'limit' );
-		if( false === $limit ) $limit = 10;
+		$options = WSStatsHooks::extractOptions(
+			array_slice(
+				func_get_args(),
+				1
+			)
+		);
+		$unique  = WSStatsHooks::getOptionSetting(
+			$options,
+			'unique',
+			false
+		);
+		$limit   = WSStatsHooks::getOptionSetting(
+			$options,
+			'limit'
+		);
+		if ( false === $limit ) {
+			$limit = 10;
+		}
 		if ( isset( $options['stats'] ) ) {
-			$dates  = array();
+			$dates       = array();
 			$wsArrayName = "";
-			$format = WSStatsHooks::getOptionSetting( $options, 'format' );
+			$format      = WSStatsHooks::getOptionSetting(
+				$options,
+				'format'
+			);
 
 			if ( $format === false ) {
 				$format = 'table';
 			}
-			if( strtolower( $format ) === 'wsarrays' ) {
-				$wsArrayName = WSStatsHooks::getOptionSetting( $options, 'name' );
-				if( false === $wsArrayName ) {
+			if ( strtolower( $format ) === 'wsarrays' ) {
+				$wsArrayName = WSStatsHooks::getOptionSetting(
+					$options,
+					'name'
+				);
+				if ( false === $wsArrayName ) {
 					$format = 'table';
 				}
 			}
-			$dates['b'] = WSStatsHooks::getOptionSetting( $options, 'start date' );
-			$dates['e'] = WSStatsHooks::getOptionSetting( $options, 'end date' );
+			$dates['b'] = WSStatsHooks::getOptionSetting(
+				$options,
+				'start date'
+			);
+			$dates['e'] = WSStatsHooks::getOptionSetting(
+				$options,
+				'end date'
+			);
 			if ( $dates['e'] === false && $dates['b'] !== false ) {
 				$dates['e'] = false;
 			}
@@ -404,16 +451,34 @@ class WSStatsHooks {
 			if ( $dates['b'] === false && $dates['e'] === false ) {
 				$dates = false;
 			}
-			$data = WSStatsHooks::getMostViewedPages( $dates, $format, $unique, $wsArrayName, $limit );
+			$data = WSStatsHooks::getMostViewedPages(
+				$dates,
+				$format,
+				$unique,
+				$wsArrayName,
+				$limit
+			);
 
 			return $data;
 		}
-		$pid = WSStatsHooks::getOptionSetting( $options, 'id' );
+		$pid = WSStatsHooks::getOptionSetting(
+			$options,
+			'id'
+		);
 		if ( $pid !== false ) {
-			$type       = WSStatsHooks::getOptionSetting( $options, 'type' );
+			$type       = WSStatsHooks::getOptionSetting(
+				$options,
+				'type'
+			);
 			$dates      = array();
-			$dates['b'] = WSStatsHooks::getOptionSetting( $options, 'start date' );
-			$dates['e'] = WSStatsHooks::getOptionSetting( $options, 'end date' );
+			$dates['b'] = WSStatsHooks::getOptionSetting(
+				$options,
+				'start date'
+			);
+			$dates['e'] = WSStatsHooks::getOptionSetting(
+				$options,
+				'end date'
+			);
 			if ( $dates['e'] === false && $dates['b'] !== false ) {
 				$dates['e'] = false;
 			}
@@ -423,7 +488,12 @@ class WSStatsHooks {
 			if ( $dates['b'] === false && $dates['e'] === false ) {
 				$dates = false;
 			}
-			$data = WSStatsHooks::getViewsPerPage( $pid, $dates, $type, $unique );
+			$data = WSStatsHooks::getViewsPerPage(
+				$pid,
+				$dates,
+				$type,
+				$unique
+			);
 			if ( $data !== null ) {
 				return $data;
 			} else {
@@ -441,7 +511,7 @@ class WSStatsHooks {
 	 *
 	 * @return bool
 	 */
-	public static function insertRecord( string $table, array $vals ): bool {
+	public static function insertRecord( string $table, array $vals ) : bool {
 		$dbw               = wfGetDB( DB_MASTER );
 		$dbw->IngoreErrors = true;
 		try {
@@ -476,7 +546,11 @@ class WSStatsHooks {
 	public static function extractOptions( array $options ) {
 		$results = array();
 		foreach ( $options as $option ) {
-			$pair = explode( '=', $option, 2 );
+			$pair = explode(
+				'=',
+				$option,
+				2
+			);
 			if ( $pair[0] !== '//' ) {
 				if ( count( $pair ) === 2 ) {
 					$name = strtolower( trim( $pair[0] ) );
@@ -486,11 +560,11 @@ class WSStatsHooks {
 						$value = strtolower( trim( $pair[1] ) );
 					}
 
-					$results[ $name ] = $value;
+					$results[$name] = $value;
 				}
 				if ( count( $pair ) === 1 ) {
-					$name             = trim( $pair[0] );
-					$results[ $name ] = true;
+					$name           = trim( $pair[0] );
+					$results[$name] = true;
 				}
 			}
 		}

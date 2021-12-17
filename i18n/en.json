@@ -6,5 +6,8 @@
 	"wsstats-i18n-welcome": "Welcome ",
 	"wsstats-title": "wsstats",
 	"wsstats-intro": "Currently supported lookups",
-	"wsstats": "WSStats"
+	"wsstats": "WSStats",
+	"wsstats-page-title": "Page title",
+	"wsstats-page-id": "Page ID",
+	"wsstats-page-hits": "Page hits"
 }

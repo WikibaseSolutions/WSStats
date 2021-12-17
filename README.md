@@ -1,6 +1,7 @@
 # WSStats
 This MediaWiki extension counts pageviews by user
 
+* Version 1.0.1 : Code clean-up and i18n messages added
 * Version 1.0.0 : Added support for setting limit and export as WSArrays
 * Version 0.8.2 : Added support for filtering only unique visitors
 * Version 0.8.1 : Added support for AdminLinks
