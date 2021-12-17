@@ -12,7 +12,6 @@ class SpecialWSStats extends SpecialPage {
 	}
 
 
-
 	/**
 	 * Show the page to the user
 	 *
@@ -21,10 +20,11 @@ class SpecialWSStats extends SpecialPage {
 	 */
 	public function execute( $sub ) {
 
-        $out = $this->getOutput();
-        $out->setPageTitle( "WSStats" );
-        $out->addHTML('<p>Soon..</p>');
-        return;
+		$out = $this->getOutput();
+		$out->setPageTitle( "WSStats" );
+		$out->addHTML( '<p>Soon..</p>' );
+
+		return;
 	}
 
 }

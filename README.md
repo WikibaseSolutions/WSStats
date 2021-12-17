@@ -1,6 +1,10 @@
 # WSStats
 This MediaWiki extension counts pageviews by user
 
+* Version 1.0.1 : Code clean-up and i18n messages added
+* Version 1.0.0 : Added support for setting limit and export as WSArrays
+* Version 0.8.2 : Added support for filtering only unique visitors
+* Version 0.8.1 : Added support for AdminLinks
 * Version 0.8.0 : Clean Up
 * Version 0.1.9 : Fetch Title changes
 * Version 0.1.8 : Removed dbprefix class variable
@@ -18,24 +22,29 @@ Create a folder called WSStats in the MediaWiki extensions folder. Copy the cont
 Add following to LocalSettings.php
 ````
 # WSStats extensions
-require_once( "$IP/extensions/WSStats/WSStats.php" );
+wfLoadExtension( 'WSStats' );
 ````
+
+Run the [update script](https://www.mediawiki.org/wiki/Manual:Update.php) which will automatically create the necessary database tables that this extension needs.
+
+Navigate to Special:Version on your wiki to verify that the extension is successfully installed.
 
 #Configuration
 
 By default Anonymous users and sysops are skipped from stats recording. To change this add following to LocalSettings.php..
 
+Start with
 ````
 $wgWSStats = array();
-
+````
+Allow statistics for anonymous users..
+````
 # Record anonymous users
 $wgWSStats['skip_anonymous'] = false;
 ````
 
 To skip users in certain groups, just add the groupname to "skip_user_groups" :
 ````
-$wgWSStats = array();
-
 # Record anonymous users
 $wgWSStats['skip_anonymous'] = false;
 
@@ -60,31 +69,32 @@ $wgWSStats['ignore_in_url'][] = 'Template:Test';
 $wgWSStats['ignore_in_url'][] = 'action=edit';
 ````
 
-#Usage
+#Using the parser function
+To retrieve statistics you can use the following parser functions :
 
-=== Ask number of hits for page id : 9868 ===
-
+#### Ask number of hits for page id : 9868
+This returns a number
 ```
 {{#wsstats:id=9868}}
 ```
 
-=== Ask number of hits for page id : 714 since start date 2018-02-01 ===
-
+#### Ask number of hits for page id : 714 since start date 2018-02-01
+This returns a number
 ```
 {{#wsstats:id=714
 |start date=2018-02-01}}
 ```
 
-=== Ask number of hits for page id : 714 since start date 2018-02-01 and end date 2018-02-14 ===
-
+#### Ask number of hits for page id : 714 since start date 2018-02-01 and end date 2018-02-14
+This returns a number
 ```
 {{#wsstats:id=714
 |start date=2018-02-01
 |end date=2018-02-08}}
 ```
 
-=== Filter results on registered users or anonymous users ===
-
+#### Filter results on registered users or anonymous users
+This returns a number
 ```
 {{#wsstats:id=714
 |start date=2018-02-01
@@ -99,23 +109,57 @@ $wgWSStats['ignore_in_url'][] = 'action=edit';
 |type=only user}}
 ```
 
-=== Get the top ten pages sorted by hits ===
-
+#### Get the top ten pages sorted by hits
+This returns a table
 ```
 {{#wsstats:stats}}
 ```
 
-=== Get the top ten pages sorted by hits in a date range ===
-
+#### Get the top ten pages sorted by hits in a date range
+This returns a table
 ```
 {{#wsstats:stats
 |start date=2018-02-01
 |end date=2018-02-08}}
 ```
 
-=== Get the top ten pages sorted by hits and show as csv ===
-
+#### Get the top ten pages sorted by hits and show as csv
+This returns a csv
 ```
 {{#wsstats:stats
 |format:csv}}
+```
+
+#### Get the top ten pages sorted by hits and insert in a WSArrays variable
+This returns nothing but only sets WSArray key. Nothing happens when the WSArrays extension is not installed
+```
+{{#wsstats:stats
+|format:wsarrays}}
+|name=<wsarray key name>}}
+```
+```
+Get the result from WSArrays:
+{{#caprint:<wsarray key name>}} 
+```
+
+#### For all queries you can add a unique identifier to only return unique views
+This returns a table
+```
+{{#wsstats:stats
+|start date=2018-02-01
+|end date=2018-02-08
+|unique}}
+```
+This returns a table
+```
+{{#wsstats:stats
+|unique}}
+```
+
+#### For all top ten stats queries you can add limit to get less or more than ten results
+This returns a table
+```
+{{#wsstats:stats
+|unique
+|limit=20}}
 ```

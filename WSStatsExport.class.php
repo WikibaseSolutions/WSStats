@@ -23,9 +23,9 @@ class WSStatsExport {
 	 */
 	public function renderTable( mysqli_result $q ): string {
 		$data = "{| class=\"sortable wikitable smwtable jquery-tablesorter\"\n";
-		$data .= "! Page ID\n";
-		$data .= "! Page Title\n";
-		$data .= "! Page hits\n";
+		$data .= "! " . wfMessage( 'wsstats-page-id' )->text() . "\n";
+		$data .= "! " . wfMessage( 'wsstats-page-title' )->text() . "\n";
+		$data .= "! " . wfMessage( 'wsstats-page-hits' )->text() . "\n";
 		while ( $row = $q->fetch_assoc() ) {
 			$data .= "|-\n";
 			$data .= "| " . $row['page_id'] . "\n";
@@ -49,6 +49,39 @@ class WSStatsExport {
 		}
 		$data = rtrim( $data, ',' );
 		return $data;
+	}
+
+	/**
+	 * @param string $name Name of the extension
+	 *
+	 * @return mixed
+	 */
+	private function extensionInstalled ( $name ) {
+		return extensionRegistry::getInstance()->isLoaded( $name );
+	}
+
+
+	/**
+	 * @param mysqli_result $q
+	 * @param string $wsArrayVariableName
+	 *
+	 * @return string
+	 */
+	public function renderWSArrays( mysqli_result $q, string $wsArrayVariableName ): string {
+		if( ! $this->extensionInstalled( 'WSArrays' ) || ! class_exists( 'ComplexArrayWrapper' ) ) {
+			return "";
+		}
+		$wsWrapper = new ComplexArrayWrapper();
+		$result = array();
+		$t = 0;
+		while ( $row = $q->fetch_assoc() ) {
+			$result[$t][wfMessage( 'wsstats-page-id' )->text()] = $row['page_id'];
+			$result[$t][wfMessage( 'wsstats-page-title' )->text()] = WSStatsHooks::getPageTitleFromID( $row['page_id'] );
+			$result[$t][wfMessage( 'wsstats-page-hits' )->text()] = $row['count'];
+			$t++;
+		}
+		$wsWrapper->on( $wsArrayVariableName )->set( $result );
+		return "";
 	}
 
 }
