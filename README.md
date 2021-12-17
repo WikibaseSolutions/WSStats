@@ -137,6 +137,10 @@ This returns nothing but only sets WSArray key. Nothing happens when the WSArray
 |format:wsarrays}}
 |name=<wsarray key name>}}
 ```
+```
+Get the result from WSArrays:
+{{#caprint:<wsarray key name>}} 
+```
 
 #### For all queries you can add a unique identifier to only return unique views
 This returns a table
