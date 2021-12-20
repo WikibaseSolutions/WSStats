@@ -73,7 +73,7 @@ class WSStatsHooks {
 	 */
 	public static function getPageTitleFromID( $id ) {
 		$title = Title::newFromID( $id );
-
+		if( is_null( $title ) ) return '';
 		return $title->getFullText();
 	}
 
