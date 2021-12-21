@@ -1,6 +1,6 @@
 {
 	"name": "WSStats",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"author": [
 		"Sen-Sai"
 	],
@@ -35,9 +35,6 @@
 	"Hooks": {
 		"ParserFirstCallInit": [
 			"WSStatsHooks::onParserFirstCallInit"
-		],
-		"ArticleDeleteAfterSuccess": [
-			"WSStatsHooks::onArticleDeleteAfterSuccess"
 		],
 		"BeforePageDisplay": [
 			"WSStatsHooks::onBeforePageDisplay"

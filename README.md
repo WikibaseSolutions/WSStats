@@ -1,6 +1,7 @@
 # WSStats
 This MediaWiki extension counts pageviews by user
 
+* Version 1.0.4 : Security fix! Unhandled user input. Update to 1.0.4 as soon as possible. 
 * Version 1.0.3 : Top X list changed as it no longer shows deleted pages
 * Version 1.0.2 : Catched request for title on a non-existing page
 * Version 1.0.1 : Code clean-up and i18n messages added

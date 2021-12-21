@@ -156,14 +156,15 @@ class WSStatsHooks {
 	 */
 	public static function getViewsPerPage( int $id, $dates = false, $type = false, bool $unique = false ) {
 		global $wgDBprefix;
-		if ( $type === 'only anonymous' ) {
-			$type = " AND user_id = 0 ";
-		}
-		if ( $type === 'only user' ) {
-			$type = " AND user_id <> 0 ";
-		}
-		if ( $type === false ) {
-			$type = '';
+		switch( $type ) {
+			case "only anonymous":
+				$dbType = " AND user_id = 0 ";
+				break;
+			case "only user":
+				$dbType = " AND user_id <> 0 ";
+				break;
+			default:
+				$dbType = "";
 		}
 		$cnt = '*';
 		if ( $unique ) {
@@ -171,12 +172,12 @@ class WSStatsHooks {
 		}
 
 		if ( $dates === false ) {
-			$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE page_id=\'' . $id . '\' ' . $type . 'GROUP BY page_id ORDER BY count DESC LIMIT 1';
+			$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE page_id=\'' . $id . '\' ' . $dbType . 'GROUP BY page_id ORDER BY count DESC LIMIT 1';
 		} else {
 			if ( $dates['e'] === false ) {
-				$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE page_id=\'' . $id . '\' ' . $type . 'AND added BETWEEN \'' . $dates["b"] . '\' AND NOW()';
+				$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE page_id=\'' . $id . '\' ' . $dbType . 'AND added BETWEEN \'' . $dates["b"] . '\' AND NOW()';
 			} else {
-				$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE page_id=\'' . $id . '\' ' . $type . 'AND added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\' GROUP BY page_id ORDER BY COUNT DESC LIMIT 1';
+				$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE page_id=\'' . $id . '\' ' . $dbType . 'AND added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\' GROUP BY page_id ORDER BY COUNT DESC LIMIT 1';
 			}
 		}
 
@@ -354,22 +355,6 @@ class WSStatsHooks {
 		return false;
 	}
 
-	/**
-	 * @param Title $title
-	 * @param OutputPage $output
-	 *
-	 * @return bool
-	 */
-	public static function onArticleDeleteAfterSuccess( Title $title, OutputPage $output ): bool {
-		if ( ! self::removeDeletePages() ) {
-			return true;
-		}
-		$pId = $title->getId();
-		if( $pId === 0 ) return true;
-		self::deleteRecord( '', $pId );
-		return true;
-
-	}
 
 	/**
 	 * @param outputPage $output
