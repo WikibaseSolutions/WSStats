@@ -27,11 +27,14 @@ class WSStatsExport {
 		$data .= "! " . wfMessage( 'wsstats-page-title' )->text() . "\n";
 		$data .= "! " . wfMessage( 'wsstats-page-hits' )->text() . "\n";
 		while ( $row = $q->fetch_assoc() ) {
-			$data .= "|-\n";
-			$data .= "| " . $row['page_id'] . "\n";
-			$data .= "| " . WSStatsHooks::getPageTitleFromID( $row['page_id'] ) . "\n";
-			$data .= "| " . $row['count'] . "\n";
-			$data .= "|-\n";
+			$pTitle = WSStatsHooks::getPageTitleFromID( $row['page_id'] );
+			if( ! is_null( $pTitle ) ) {
+				$data .= "|-\n";
+				$data .= "| " . $row['page_id'] . "\n";
+				$data .= "| " . $pTitle . "\n";
+				$data .= "| " . $row['count'] . "\n";
+				$data .= "|-\n";
+			}
 		}
 		$data .= "|}\n";
 		return $data;
@@ -75,10 +78,13 @@ class WSStatsExport {
 		$result = array();
 		$t = 0;
 		while ( $row = $q->fetch_assoc() ) {
-			$result[$t][wfMessage( 'wsstats-page-id' )->text()] = $row['page_id'];
-			$result[$t][wfMessage( 'wsstats-page-title' )->text()] = WSStatsHooks::getPageTitleFromID( $row['page_id'] );
-			$result[$t][wfMessage( 'wsstats-page-hits' )->text()] = $row['count'];
-			$t++;
+			$pTitle = WSStatsHooks::getPageTitleFromID( $row['page_id'] );
+			if( !is_null( $pTitle ) ) {
+				$result[$t][wfMessage( 'wsstats-page-id' )->text()] = $row['page_id'];
+				$result[$t][wfMessage( 'wsstats-page-title' )->text()] = $pTitle;
+				$result[$t][wfMessage( 'wsstats-page-hits' )->text()] = $row['count'];
+				$t++;
+			}
 		}
 		$wsWrapper->on( $wsArrayVariableName )->set( $result );
 		return "";

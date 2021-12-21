@@ -1,6 +1,6 @@
 {
 	"name": "WSStats",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"author": [
 		"Sen-Sai"
 	],
@@ -27,13 +27,17 @@
 			"ignore_in_url" : [
 				"action=edit",
 				"veaction=edit"
-			]
+			],
+			"remove_deleted_pages_from_stats" : false
 		}
 	},
 
 	"Hooks": {
 		"ParserFirstCallInit": [
 			"WSStatsHooks::onParserFirstCallInit"
+		],
+		"ArticleDeleteAfterSuccess": [
+			"WSStatsHooks::onArticleDeleteAfterSuccess"
 		],
 		"BeforePageDisplay": [
 			"WSStatsHooks::onBeforePageDisplay"

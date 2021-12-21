@@ -16,6 +16,8 @@ if ( ! defined( 'MEDIAWIKI' ) ) {
  */
 class WSStatsHooks {
 
+	const DBTABLE = 'WSPS';
+
 
 	/**
 	 * WSStatsHooks constructor.
@@ -73,7 +75,7 @@ class WSStatsHooks {
 	 */
 	public static function getPageTitleFromID( $id ) {
 		$title = Title::newFromID( $id );
-		if( is_null( $title ) ) return '';
+		if( is_null( $title ) ) return null;
 		return $title->getFullText();
 	}
 
@@ -332,6 +334,15 @@ class WSStatsHooks {
 	/**
 	 * @return bool
 	 */
+	private static function removeDeletePages() : bool {
+		global $wgWSStats;
+		if( $wgWSStats['remove_deleted_pages_from_stats'] === true ) return true;
+		return false;
+	}
+
+	/**
+	 * @return bool
+	 */
 	private static function skipAnonymous() : bool {
 		global $wgUser, $wgWSStats;
 		if ( isset( $wgWSStats['skip_anonymous'] ) && $wgWSStats['skip_anonymous'] === true ) {
@@ -343,6 +354,22 @@ class WSStatsHooks {
 		return false;
 	}
 
+	/**
+	 * @param Title $title
+	 * @param OutputPage $output
+	 *
+	 * @return bool
+	 */
+	public static function onArticleDeleteAfterSuccess( Title $title, OutputPage $output ): bool {
+		if ( ! self::removeDeletePages() ) {
+			return true;
+		}
+		$pId = $title->getId();
+		if( $pId === 0 ) return true;
+		self::deleteRecord( '', $pId );
+		return true;
+
+	}
 
 	/**
 	 * @param outputPage $output
@@ -504,6 +531,27 @@ class WSStatsHooks {
 		return "ok, move along. Nothing to see here..";
 	}
 
+	private static function deleteRecord( $table, $pId ) : bool {
+		$dbw               = wfGetDB( DB_MASTER );
+		$dbw->IngoreErrors = true;
+		try {
+			$res = $dbw->delete(
+				$table,
+				"page_id = " . $pId ,
+				__METHOD__
+			);
+		} catch ( Exception $e ) {
+			echo $e;
+
+			return false;
+		}
+
+		if ( $res ) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	/**
 	 * @param string $table
