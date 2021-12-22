@@ -22,8 +22,7 @@
       "ignore_in_url": [
         "action=edit",
         "veaction=edit"
-      ],
-      "remove_deleted_pages_from_stats": false
+      ]
     }
   },
   "AutoloadNamespaces": {

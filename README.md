@@ -41,7 +41,7 @@ Start with
 ````
 $wgWSStats = array();
 ````
-Allow statistics for anonymous users..
+Allow statistics for anonymous users:
 ````
 # Record anonymous users
 $wgWSStats['skip_anonymous'] = false;
@@ -57,7 +57,7 @@ $wgWSStats['skip_user_groups'][] = 'sysop';
 $wgWSStats['skip_user_groups'][] = 'admin';
 ````
 
-Count all hits
+Count all hits:
 ````
 $wgWSStats = array();
 $wgWSStats['count_all_usergroups'] = true;
@@ -66,7 +66,7 @@ $wgWSStats['count_all_usergroups'] = true;
 ***NOTE**: If you have set $wgWSStats['count_all']=true; then $wgWSStats['skip_user_groups'] is ignored.*
 ''
 
-Skip page with certain text in their referer url. Default action=edit and veaction=edit are ignored. This configuration option is case sensitive.
+Skip page with certain text in their referer url. Default action=edit and veaction=edit are ignored. This configuration option is case sensitive:
 ````
 $wgWSStats = array();
 $wgWSStats['ignore_in_url'][] = 'Template:Test';
