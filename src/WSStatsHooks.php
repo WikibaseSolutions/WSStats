@@ -109,7 +109,7 @@ class WSStatsHooks {
 		if ( file_exists( $tables ) ) {
 			$updater->addExtensionUpdate( array(
 											  'addTable',
-											  'WSPS',
+											  self::DBTABLE,
 											  $tables,
 											  true
 										  ) );
@@ -208,7 +208,7 @@ class WSStatsHooks {
 		}
 
 		$res      = $dbr->select(
-			$wgDBprefix . 'WSPS',
+			$wgDBprefix . self::DBTABLE,
 			$selectWhat,
 			$selectConditions,
 			__METHOD__,
@@ -277,7 +277,7 @@ class WSStatsHooks {
 		}
 
 		$res  = $dbr->select(
-			$wgDBprefix . 'WSPS',
+			$wgDBprefix . self::DBTABLE,
 			$selectWhat,
 			$selectConditions,
 			__METHOD__,
@@ -449,7 +449,7 @@ class WSStatsHooks {
 		$data['page_id'] = $title->getArticleID();
 		if ( $data['page_id'] != 0 ) {
 			WSStatsHooks::insertRecord(
-				'WSPS',
+				self::DBTABLE,
 				$data
 			);
 		}
