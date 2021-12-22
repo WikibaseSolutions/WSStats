@@ -580,7 +580,8 @@ class WSStatsHooks {
 			$options,
 			'id'
 		);
-		if ( $pid !== false ) {
+		$pid = intval( $pid );
+		if ( $pid !== 0 ) {
 			$type = WSStatsHooks::getOptionSetting(
 				$options,
 				'type'
