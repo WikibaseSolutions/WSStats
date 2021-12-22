@@ -54,6 +54,47 @@ class WSStatsHooks {
 		return $title->getFullText();
 	}
 
+	public static function validateDate( $date, $format = 'Y-m-d H:i:s' ) {
+		if ( strpos(
+			$date,
+			' '
+		) ) {
+			// we have also a time added
+			$xploded      = explode(
+				' ',
+				$date
+			);
+			$timeExploded = explode(
+				":",
+				$xploded[1]
+			);
+			$timeCount    = count( $timeExploded );
+			switch ( $timeCount ) {
+				case 0:
+					$date   = $xploded[0];
+					$format = 'Y-m-d';
+					break;
+				case 1:
+					$format = 'Y-m-d H';
+					break;
+				case 2:
+					$format = 'Y-m-d H:i';
+					break;
+				case 3:
+					$format = 'Y-m-d H:i:s';
+					break;
+				default:
+					$format = 'Y-m-d';
+			}
+		}
+		$d = \DateTime::createFromFormat(
+			$format,
+			$date
+		);
+
+		return $d && $d->format( $format ) == $date;
+	}
+
 	/**
 	 * Implements AdminLinks hook from Extension:Admin_Links.
 	 *
@@ -478,11 +519,26 @@ class WSStatsHooks {
 			$options,
 			'limit'
 		);
-		if ( false === $limit ) {
+		$limit = intval( $limit );
+		if ( $limit === 0 ) {
 			$limit = 10;
 		}
+		$dates      = array();
+		$dates['b'] = WSStatsHooks::getOptionSetting(
+			$options,
+			'start date'
+		);
+		$dates['e'] = WSStatsHooks::getOptionSetting(
+			$options,
+			'end date'
+		);
+		if ( $dates['b'] !== false && self::validateDate( $dates['b'] ) === false ) {
+			$dates['b'] = false;
+		}
+		if ( $dates['e'] !== false && self::validateDate( $dates['e'] ) === false ) {
+			$dates['e'] = false;
+		}
 		if ( isset( $options['stats'] ) ) {
-			$dates       = array();
 			$wsArrayName = "";
 			$format      = WSStatsHooks::getOptionSetting(
 				$options,
@@ -501,14 +557,6 @@ class WSStatsHooks {
 					$format = 'table';
 				}
 			}
-			$dates['b'] = WSStatsHooks::getOptionSetting(
-				$options,
-				'start date'
-			);
-			$dates['e'] = WSStatsHooks::getOptionSetting(
-				$options,
-				'end date'
-			);
 			if ( $dates['e'] === false && $dates['b'] !== false ) {
 				$dates['e'] = false;
 			}
@@ -533,19 +581,11 @@ class WSStatsHooks {
 			'id'
 		);
 		if ( $pid !== false ) {
-			$type       = WSStatsHooks::getOptionSetting(
+			$type = WSStatsHooks::getOptionSetting(
 				$options,
 				'type'
 			);
-			$dates      = array();
-			$dates['b'] = WSStatsHooks::getOptionSetting(
-				$options,
-				'start date'
-			);
-			$dates['e'] = WSStatsHooks::getOptionSetting(
-				$options,
-				'end date'
-			);
+
 			if ( $dates['e'] === false && $dates['b'] !== false ) {
 				$dates['e'] = false;
 			}
