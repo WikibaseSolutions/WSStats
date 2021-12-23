@@ -11,22 +11,26 @@
  * @author Sen-Sai
  */
 
+namespace WSStats\export;
+
+use WSStats\WSStatsHooks, extensionRegistry;
+
 /**
  * Class WSStatsExport
  */
 class WSStatsExport {
 
 	/**
-	 * @param mysqli_result $q
+	 * @param \Wikimedia\Rdbms\IResultWrapper $q
 	 *
 	 * @return string
 	 */
-	public function renderTable( mysqli_result $q ): string {
+	public function renderTable( \Wikimedia\Rdbms\IResultWrapper $q ): string {
 		$data = "{| class=\"sortable wikitable smwtable jquery-tablesorter\"\n";
 		$data .= "! " . wfMessage( 'wsstats-page-id' )->text() . "\n";
 		$data .= "! " . wfMessage( 'wsstats-page-title' )->text() . "\n";
 		$data .= "! " . wfMessage( 'wsstats-page-hits' )->text() . "\n";
-		while ( $row = $q->fetch_assoc() ) {
+		while ( $row = $q->fetchRow() ) {
 			$pTitle = WSStatsHooks::getPageTitleFromID( $row['page_id'] );
 			if( ! is_null( $pTitle ) ) {
 				$data .= "|-\n";
@@ -41,17 +45,16 @@ class WSStatsExport {
 	}
 
 	/**
-	 * @param mysqli_result $q
+	 * @param \Wikimedia\Rdbms\IResultWrapper $q
 	 *
 	 * @return string
 	 */
-	public function renderCSV( mysqli_result $q ): string {
+	public function renderCSV( \Wikimedia\Rdbms\IResultWrapper $q ): string {
 		$data = '';
-		while ( $row = $q->fetch_assoc() ) {
+		while ( $row = $q->fetchRow() ) {
 			$data .= $row['page_id'] . ";" . $row['count'] . ",";
 		}
-		$data = rtrim( $data, ',' );
-		return $data;
+		return rtrim( $data, ',' );
 	}
 
 	/**
@@ -70,14 +73,16 @@ class WSStatsExport {
 	 *
 	 * @return string
 	 */
-	public function renderWSArrays( mysqli_result $q, string $wsArrayVariableName ): string {
-		if( ! $this->extensionInstalled( 'WSArrays' ) || ! class_exists( 'ComplexArrayWrapper' ) ) {
-			return "";
-		}
-		$wsWrapper = new ComplexArrayWrapper();
+	public function renderWSArrays( \Wikimedia\Rdbms\IResultWrapper $q, string $wsArrayVariableName ): string {
+		global $IP;
+		if( ! $this->extensionInstalled( 'WSArrays' ) ) return "";
+		if( file_exists( $IP . '/extensions/WSArrays/ComplexArrayWrapper.php' ) ) {
+			include_once( $IP . '/extensions/WSArrays/ComplexArrayWrapper.php' );
+		} else return "";
+		$wsWrapper = new \ComplexArrayWrapper();
 		$result = array();
 		$t = 0;
-		while ( $row = $q->fetch_assoc() ) {
+		while ( $row = $q->fetchRow() ) {
 			$pTitle = WSStatsHooks::getPageTitleFromID( $row['page_id'] );
 			if( !is_null( $pTitle ) ) {
 				$result[$t][wfMessage( 'wsstats-page-id' )->text()] = $row['page_id'];

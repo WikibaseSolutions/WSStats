@@ -1,62 +1,50 @@
 {
-	"name": "WSStats",
-	"version": "1.0.4",
-	"author": [
-		"Sen-Sai"
-	],
-	"url": "https://github.com/WikibaseSolutions/WSStats",
-	"descriptionmsg": "wsstats-desc",
-	"license-name": "GPL v2",
-	"type": "parserhook",
-	"AutoloadClasses": {
-		"WSStatsHooks": "WSStats.hooks.php",
-		"WSStatsExport": "WSStatsExport.class.php",
-		"SpecialWSStats": "specials/SpecialWSStats.php"
-	},
-	"ExtensionMessagesFiles": {
-		"WSStatsAlias": "WSStats.i18n.alias.php",
-		"WSStatsMagic": "WSStats.i18n.magic.php"
-	},
-	"config" : {
-		"WSStats" : {
-			"skip_anonymous" : true,
-			"skip_user_groups" : [
-				"sysop"
-			],
-			"count_all_usergroups" : false,
-			"ignore_in_url" : [
-				"action=edit",
-				"veaction=edit"
-			],
-			"remove_deleted_pages_from_stats" : false
-		}
-	},
-
-	"Hooks": {
-		"ParserFirstCallInit": [
-			"WSStatsHooks::onParserFirstCallInit"
-		],
-		"BeforePageDisplay": [
-			"WSStatsHooks::onBeforePageDisplay"
-		],
-		"LoadExtensionSchemaUpdates": [
-			"WSStatsHooks::addTables"
-		],
-		"AdminLinks": [
-			"WSStatsHooks::addToAdminLinks"
-		]
-	},
-	"MessagesDirs": {
-		"WSStats": [
-			"i18n"
-		]
-	},
-	"ResourceFileModulePaths": {
-		"localBasePath": "",
-		"remoteExtPath": "WSStats"
-	},
-	"SpecialPages": {
-		"WSStats": "SpecialWSStats"
-	},
-	"manifest_version": 1
+  "name": "WSStats",
+  "version": "1.0.5",
+  "author": [
+    "Sen-Sai"
+  ],
+  "url": "https://github.com/WikibaseSolutions/WSStats",
+  "descriptionmsg": "wsstats-desc",
+  "license-name": "GPL v2",
+  "type": "parserhook",
+  "ExtensionMessagesFiles": {
+    "WSStatsAlias": "WSStats.i18n.alias.php",
+    "WSStatsMagic": "WSStats.i18n.magic.php"
+  },
+  "config": {
+    "WSStats": {
+      "skip_anonymous": true,
+      "skip_user_groups": [
+        "sysop"
+      ],
+      "count_all_usergroups": false,
+      "ignore_in_url": [
+        "action=edit",
+        "veaction=edit"
+      ]
+    }
+  },
+  "AutoloadNamespaces": {
+    "WSStats\\": "src/"
+  },
+  "Hooks": {
+    "ParserFirstCallInit": "WSStats\\WSStatsHooks::onParserFirstCallInit",
+    "BeforePageDisplay": "WSStats\\WSStatsHooks::onBeforePageDisplay",
+    "LoadExtensionSchemaUpdates": "WSStats\\WSStatsHooks::addTables",
+    "AdminLinks": "WSStats\\WSStatsHooks::addToAdminLinks"
+  },
+  "MessagesDirs": {
+    "WSStats": [
+      "i18n"
+    ]
+  },
+  "ResourceFileModulePaths": {
+    "localBasePath": "",
+    "remoteExtPath": "WSStats"
+  },
+  "SpecialPages": {
+    "WSStats": "WSStats\\specials\\SpecialWSStats"
+  },
+  "manifest_version": 2
 }

@@ -7,6 +7,10 @@
  *
  */
 
+namespace WSStats;
+
+use Parser, Title, ALTree, OutputPage, Skin, WSStats\export\WSStatsExport, MediaWiki\MediaWikiServices;
+
 if ( ! defined( 'MEDIAWIKI' ) ) {
 	die( 'This file is a MediaWiki extension, it is not a valid entry point' );
 }
@@ -35,38 +39,6 @@ class WSStatsHooks {
 		return $wgUser->isAnon();
 	}
 
-	/**
-	 * @return MySQLi
-	 */
-	public static function db_open() : MySQLI {
-		global $wgDBserver;
-		global $wgDBname;
-		global $wgDBuser;
-		global $wgDBpassword;
-
-		$conn = new MySQLi(
-			$wgDBserver,
-			$wgDBuser,
-			$wgDBpassword,
-			$wgDBname
-		);
-		$conn->set_charset( "utf8" );
-
-		return $conn;
-	}
-
-	/**
-	 * @param string $txt
-	 *
-	 * @return string
-	 */
-	public static function db_real_escape( string $txt ) : string {
-		$db  = WSStatsHooks::db_open();
-		$txt = $db->real_escape_string( $txt );
-		$db->close();
-
-		return $txt;
-	}
 
 	/**
 	 * @param int $id
@@ -75,8 +47,52 @@ class WSStatsHooks {
 	 */
 	public static function getPageTitleFromID( $id ) {
 		$title = Title::newFromID( $id );
-		if( is_null( $title ) ) return null;
+		if ( is_null( $title ) ) {
+			return null;
+		}
+
 		return $title->getFullText();
+	}
+
+	public static function validateDate( $date, $format = 'Y-m-d H:i:s' ) {
+		if ( strpos(
+			$date,
+			' '
+		) ) {
+			// we have also a time added
+			$xploded      = explode(
+				' ',
+				$date
+			);
+			$timeExploded = explode(
+				":",
+				$xploded[1]
+			);
+			$timeCount    = count( $timeExploded );
+			switch ( $timeCount ) {
+				case 0:
+					$date   = $xploded[0];
+					$format = 'Y-m-d';
+					break;
+				case 1:
+					$format = 'Y-m-d H';
+					break;
+				case 2:
+					$format = 'Y-m-d H:i';
+					break;
+				case 3:
+					$format = 'Y-m-d H:i:s';
+					break;
+				default:
+					$format = 'Y-m-d';
+			}
+		}
+		$d = \DateTime::createFromFormat(
+			$format,
+			$date
+		);
+
+		return $d && $d->format( $format ) == $date;
 	}
 
 	/**
@@ -86,28 +102,28 @@ class WSStatsHooks {
 	 *
 	 * @return bool
 	 */
-	public static function addToAdminLinks( ALTree &$adminLinksTree ) {
+	public static function addToAdminLinks( \ALTree &$adminLinksTree ) {
 		global $wgServer;
 		$wsSection = $adminLinksTree->getSection( 'WikiBase Solutions' );
 		if ( is_null( $wsSection ) ) {
-			$section = new ALSection( 'WikiBase Solutions' );
+			$section = new \ALSection( 'WikiBase Solutions' );
 			$adminLinksTree->addSection(
 				$section,
 				wfMessage( 'adminlinks_general' )->text()
 			);
 			$wsSection     = $adminLinksTree->getSection( 'WikiBase Solutions' );
-			$extensionsRow = new ALRow( 'extensions' );
+			$extensionsRow = new \ALRow( 'extensions' );
 			$wsSection->addRow( $extensionsRow );
 		}
 
 		$extensionsRow = $wsSection->getRow( 'extensions' );
 
 		if ( is_null( $extensionsRow ) ) {
-			$extensionsRow = new ALRow( 'extensions' );
+			$extensionsRow = new \ALRow( 'extensions' );
 			$wsSection->addRow( $extensionsRow );
 		}
 		$extensionsRow->addItem(
-			ALItem::newFromExternalLink(
+			\ALItem::newFromExternalLink(
 				$wgServer . '/index.php/Special:WSStats',
 				'WS Statistics'
 			)
@@ -129,22 +145,22 @@ class WSStatsHooks {
 		if ( $dbt === 'sqlite' ) {
 			$dbt = 'sql';
 		}
-		$tables = __DIR__ . "/WSStats.$dbt";
+		$tables = __DIR__ . "/sql/WSStats.$dbt";
 
 		if ( file_exists( $tables ) ) {
-			$updater->addExtensionUpdate(
-				array(
-					'addTable',
-					'WSPS',
-					$tables,
-					true
-				) );
+			$updater->addExtensionUpdate( array(
+											  'addTable',
+											  self::DBTABLE,
+											  $tables,
+											  true
+										  ) );
 		} else {
 			throw new MWException( "WSStats does not support $dbt." );
 		}
 
 		return true;
 	}
+
 
 	/**
 	 * @param int $id
@@ -156,42 +172,94 @@ class WSStatsHooks {
 	 */
 	public static function getViewsPerPage( int $id, $dates = false, $type = false, bool $unique = false ) {
 		global $wgDBprefix;
-		switch( $type ) {
+		switch ( $type ) {
 			case "only anonymous":
-				$dbType = " AND user_id = 0 ";
+				$dbType = "user_id = 0 ";
 				break;
 			case "only user":
-				$dbType = " AND user_id <> 0 ";
+				$dbType = "user_id <> 0 ";
 				break;
 			default:
-				$dbType = "";
+				$dbType = false;
 		}
 		$cnt = '*';
 		if ( $unique ) {
 			$cnt = 'DISTINCT(user_id)';
 		}
 
+		$lb               = MediaWikiServices::getInstance()->getDBLoadBalancer();
+		$dbr              = $lb->getConnectionRef( DB_REPLICA );
+		$dbResult         = array();
+		$selectWhat       = [
+			'page_id',
+			"count" => 'COUNT(' . $cnt . ')'
+		];
+		$selectOptions    = [
+			'GROUP BY' => 'page_id',
+			'ORDER BY' => 'count DESC',
+			'LIMIT'    => 1
+		];
+		$selectConditions = array();
+
 		if ( $dates === false ) {
-			$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE page_id=\'' . $id . '\' ' . $dbType . 'GROUP BY page_id ORDER BY count DESC LIMIT 1';
+			// Set Conditions
+			if ( ! $dbType ) {
+				$selectConditions = [
+					"page_id = " . $id
+				];
+			} else {
+				$selectConditions = [
+					"page_id = " . $id,
+					$dbType
+				];
+			}
+			//$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE page_id=\'' . $id . '\' ' . $dbType . 'GROUP BY page_id ORDER BY count DESC LIMIT 1';
 		} else {
 			if ( $dates['e'] === false ) {
-				$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE page_id=\'' . $id . '\' ' . $dbType . 'AND added BETWEEN \'' . $dates["b"] . '\' AND NOW()';
+				// Set Conditions
+				if ( ! $dbType ) {
+					$selectConditions = [
+						"page_id = " . $id,
+						'added BETWEEN \'' . $dates["b"] . '\' AND NOW()'
+					];
+				} else {
+					$selectConditions = [
+						"page_id = " . $id,
+						$dbType,
+						'added BETWEEN \'' . $dates["b"] . '\' AND NOW()'
+					];
+				}
+				//$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE page_id=\'' . $id . '\' ' . $dbType . 'AND added BETWEEN \'' . $dates["b"] . '\' AND NOW()';
 			} else {
-				$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE page_id=\'' . $id . '\' ' . $dbType . 'AND added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\' GROUP BY page_id ORDER BY COUNT DESC LIMIT 1';
+				// Set Conditions
+				if ( ! $dbType ) {
+					$selectConditions = [
+						"page_id = " . $id,
+						'added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\''
+					];
+				} else {
+					$selectConditions = [
+						"page_id = " . $id,
+						$dbType,
+						'added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\''
+					];
+				}
+				//$sql      = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE page_id=\'' . $id . '\' ' . $dbType . 'AND added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\' GROUP BY page_id ORDER BY COUNT DESC LIMIT 1';
 			}
 		}
 
-		$db = WSStatsHooks::db_open();
-
-		$q = $db->query( $sql );
-		if ( $q === false ) {
-			return 0;
-		}
-		$row = $q->fetch_assoc();
-		if ( ! isset( $row['count'] ) || empty( $row['count'] ) ) {
+		$res      = $dbr->select(
+			$wgDBprefix . self::DBTABLE,
+			$selectWhat,
+			$selectConditions,
+			__METHOD__,
+			$selectOptions
+		);
+		$dbResult = $res->fetchRow();
+		if ( ! isset( $dbResult['count'] ) || empty( $dbResult['count'] ) ) {
 			return 0;
 		} else {
-			return $row['count'];
+			return $dbResult['count'];
 		}
 	}
 
@@ -217,33 +285,58 @@ class WSStatsHooks {
 		if ( $unique ) {
 			$cnt = 'DISTINCT(user_id)';
 		}
+
+		$lb       = MediaWikiServices::getInstance()->getDBLoadBalancer();
+		$dbr      = $lb->getConnectionRef( DB_REPLICA );
+		$dbResult = array();
+
+		$selectWhat       = [
+			'page_id',
+			"count" => 'COUNT(' . $cnt . ')'
+		];
+		$selectOptions    = [
+			'GROUP BY' => 'page_id',
+			'ORDER BY' => 'count DESC',
+			'LIMIT'    => $limit
+		];
+		$selectConditions = array();
+
 		if ( $dates === false ) {
-			$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS GROUP BY page_id ORDER BY count DESC LIMIT ' . $limit;
+			//$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS GROUP BY page_id ORDER BY count DESC LIMIT ' . $limit;
 		} else {
 			if ( $dates['e'] === false ) {
-				$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE added BETWEEN \'' . $dates["b"] . '\' AND NOW() GROUP BY page_id ORDER BY count DESC LIMIT ' . $limit;
+				$selectConditions = [
+					'added BETWEEN \'' . $dates["b"] . '\' AND AND NOW()'
+				];
+				//$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE added BETWEEN \'' . $dates["b"] . '\' AND NOW() GROUP BY page_id ORDER BY count DESC LIMIT ' . $limit;
 			} else {
-				$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\' GROUP BY page_id ORDER BY COUNT DESC LIMIT ' . $limit;
+				$selectConditions = [
+					'added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\''
+				];
+				//$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\' GROUP BY page_id ORDER BY COUNT DESC LIMIT ' . $limit;
 			}
 		}
 
-		$db   = WSStatsHooks::db_open();
-		$q    = $db->query( $sql );
+		$res  = $dbr->select(
+			$wgDBprefix . self::DBTABLE,
+			$selectWhat,
+			$selectConditions,
+			__METHOD__,
+			$selectOptions
+		);
 		$data = "";
-		if ( $q->num_rows > 0 ) {
+		if ( $res->numRows() > 0 ) {
 			$renderMethod = new WSStatsExport();
 			switch ( $render ) {
 				case "table":
-					$data = $renderMethod->renderTable( $q );
-					$db->close();
+					$data = $renderMethod->renderTable( $res );
 					break;
 				case "csv":
-					$data = $renderMethod->renderCSV( $q );
-					$db->close();
+					$data = $renderMethod->renderCSV( $res );
 					break;
 				case "wsarrays":
 					$data = $renderMethod->renderWSArrays(
-						$q,
+						$res,
 						$variable
 					);
 					break;
@@ -284,7 +377,7 @@ class WSStatsHooks {
 	public static function onParserFirstCallInit( Parser &$parser ) {
 		$parser->setFunctionHook(
 			'wsstats',
-			'WSStatsHooks::wsstats'
+			'WSStats\WSStatsHooks::wsstats'
 		);
 	}
 
@@ -337,7 +430,10 @@ class WSStatsHooks {
 	 */
 	private static function removeDeletePages() : bool {
 		global $wgWSStats;
-		if( $wgWSStats['remove_deleted_pages_from_stats'] === true ) return true;
+		if ( $wgWSStats['remove_deleted_pages_from_stats'] === true ) {
+			return true;
+		}
+
 		return false;
 	}
 
@@ -394,7 +490,7 @@ class WSStatsHooks {
 		$data['page_id'] = $title->getArticleID();
 		if ( $data['page_id'] != 0 ) {
 			WSStatsHooks::insertRecord(
-				'WSPS',
+				self::DBTABLE,
 				$data
 			);
 		}
@@ -423,11 +519,26 @@ class WSStatsHooks {
 			$options,
 			'limit'
 		);
-		if ( false === $limit ) {
+		$limit = intval( $limit );
+		if ( $limit === 0 ) {
 			$limit = 10;
 		}
+		$dates      = array();
+		$dates['b'] = WSStatsHooks::getOptionSetting(
+			$options,
+			'start date'
+		);
+		$dates['e'] = WSStatsHooks::getOptionSetting(
+			$options,
+			'end date'
+		);
+		if ( $dates['b'] !== false && self::validateDate( $dates['b'] ) === false ) {
+			$dates['b'] = false;
+		}
+		if ( $dates['e'] !== false && self::validateDate( $dates['e'] ) === false ) {
+			$dates['e'] = false;
+		}
 		if ( isset( $options['stats'] ) ) {
-			$dates       = array();
 			$wsArrayName = "";
 			$format      = WSStatsHooks::getOptionSetting(
 				$options,
@@ -446,14 +557,6 @@ class WSStatsHooks {
 					$format = 'table';
 				}
 			}
-			$dates['b'] = WSStatsHooks::getOptionSetting(
-				$options,
-				'start date'
-			);
-			$dates['e'] = WSStatsHooks::getOptionSetting(
-				$options,
-				'end date'
-			);
 			if ( $dates['e'] === false && $dates['b'] !== false ) {
 				$dates['e'] = false;
 			}
@@ -477,20 +580,13 @@ class WSStatsHooks {
 			$options,
 			'id'
 		);
-		if ( $pid !== false ) {
-			$type       = WSStatsHooks::getOptionSetting(
+		$pid = intval( $pid );
+		if ( $pid !== 0 ) {
+			$type = WSStatsHooks::getOptionSetting(
 				$options,
 				'type'
 			);
-			$dates      = array();
-			$dates['b'] = WSStatsHooks::getOptionSetting(
-				$options,
-				'start date'
-			);
-			$dates['e'] = WSStatsHooks::getOptionSetting(
-				$options,
-				'end date'
-			);
+
 			if ( $dates['e'] === false && $dates['b'] !== false ) {
 				$dates['e'] = false;
 			}
@@ -522,7 +618,7 @@ class WSStatsHooks {
 		try {
 			$res = $dbw->delete(
 				$table,
-				"page_id = " . $pId ,
+				"page_id = " . $pId,
 				__METHOD__
 			);
 		} catch ( Exception $e ) {

@@ -1,6 +1,7 @@
 # WSStats
 This MediaWiki extension counts pageviews by user
 
+* Version 1.0.5 : Rewrote database queries to use MW database abstraction layer.
 * Version 1.0.4 : Security fix! Unhandled user input. Update to 1.0.4 as soon as possible. 
 * Version 1.0.3 : Top X list changed as it no longer shows deleted pages
 * Version 1.0.2 : Catched request for title on a non-existing page
@@ -40,7 +41,7 @@ Start with
 ````
 $wgWSStats = array();
 ````
-Allow statistics for anonymous users..
+Allow statistics for anonymous users:
 ````
 # Record anonymous users
 $wgWSStats['skip_anonymous'] = false;
@@ -56,7 +57,7 @@ $wgWSStats['skip_user_groups'][] = 'sysop';
 $wgWSStats['skip_user_groups'][] = 'admin';
 ````
 
-Count all hits
+Count all hits:
 ````
 $wgWSStats = array();
 $wgWSStats['count_all_usergroups'] = true;
@@ -65,7 +66,7 @@ $wgWSStats['count_all_usergroups'] = true;
 ***NOTE**: If you have set $wgWSStats['count_all']=true; then $wgWSStats['skip_user_groups'] is ignored.*
 ''
 
-Skip page with certain text in their referer url. Default action=edit and veaction=edit are ignored. This configuration option is case sensitive.
+Skip page with certain text in their referer url. Default action=edit and veaction=edit are ignored. This configuration option is case sensitive:
 ````
 $wgWSStats = array();
 $wgWSStats['ignore_in_url'][] = 'Template:Test';
@@ -119,7 +120,7 @@ This returns a table
 ```
 
 #### Get the top ten pages sorted by hits in a date range
-This returns a table
+This returns a table from 2018-02-01 00:00:00 up to 2018-02-08 00:00:00 ( so not including 2018-02-08 )
 ```
 {{#wsstats:stats
 |start date=2018-02-01

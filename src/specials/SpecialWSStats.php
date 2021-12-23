@@ -1,11 +1,15 @@
 <?php
+
+namespace WSStats\specials;
+
+use SpecialPage;
+
 /**
  * Overview for the WSStats extension
  *
  * @file
  * @ingroup Extensions
  */
-
 class SpecialWSStats extends SpecialPage {
 	public function __construct() {
 		parent::__construct( 'WSStats' );
@@ -19,7 +23,6 @@ class SpecialWSStats extends SpecialPage {
 	 *  [[Special:HelloWorld/subpage]].
 	 */
 	public function execute( $sub ) {
-
 		$out = $this->getOutput();
 		$out->setPageTitle( "WSStats" );
 		$out->addHTML( '<p>Soon..</p>' );
