@@ -145,7 +145,7 @@ class WSStatsHooks {
 		if ( $dbt === 'sqlite' ) {
 			$dbt = 'sql';
 		}
-		$tables = __DIR__ . "/sql/WSStats.$dbt";
+		$tables = __DIR__ . "/../sql/WSStats.$dbt";
 
 		if ( file_exists( $tables ) ) {
 			$updater->addExtensionUpdate( array(
@@ -155,7 +155,7 @@ class WSStatsHooks {
 											  true
 										  ) );
 		} else {
-			throw new MWException( "WSStats does not support $dbt." );
+			throw new \MWException( "WSStats does not support $dbt." );
 		}
 
 		return true;
