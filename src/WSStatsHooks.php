@@ -269,6 +269,7 @@ class WSStatsHooks {
 	 * @param bool $unique
 	 * @param string $variable
 	 * @param int $limit
+	 * @param int $limit
 	 *
 	 * @return string
 	 */
@@ -277,7 +278,8 @@ class WSStatsHooks {
 		string $render = "table",
 		bool $unique = false,
 		string $variable = "",
-		int $limit = 10
+		int $limit = 10,
+		int $pId = 0
 	) : string {
 		global $wgDBprefix;
 
@@ -290,15 +292,30 @@ class WSStatsHooks {
 		$dbr      = $lb->getConnectionRef( DB_REPLICA );
 		$dbResult = array();
 
-		$selectWhat       = [
-			'page_id',
-			"count" => 'COUNT(' . $cnt . ')'
-		];
-		$selectOptions    = [
-			'GROUP BY' => 'page_id',
-			'ORDER BY' => 'count DESC',
-			'LIMIT'    => $limit
-		];
+		if( $pId === 0 ) {
+			$selectWhat = [
+				'page_id',
+				"count" => 'COUNT(' . $cnt . ')'
+			];
+		} else {
+			$selectWhat = [
+				'page_id',
+				"count" => 'COUNT(' . $cnt . ')',
+				'added'
+			];
+		}
+		if( $pId === 0 ) {
+			$selectOptions = [
+				'GROUP BY' => 'page_id',
+				'ORDER BY' => 'count DESC',
+				'LIMIT'    => $limit
+			];
+		} else {
+			$selectOptions = [
+				'ORDER BY' => 'added ASC',
+				'LIMIT'    => $limit
+			];
+		}
 		$selectConditions = array();
 
 		if ( $dates === false ) {
@@ -329,15 +346,16 @@ class WSStatsHooks {
 			$renderMethod = new WSStatsExport();
 			switch ( $render ) {
 				case "table":
-					$data = $renderMethod->renderTable( $res );
+					$data = $renderMethod->renderTable( $res, $pId );
 					break;
 				case "csv":
-					$data = $renderMethod->renderCSV( $res );
+					$data = $renderMethod->renderCSV( $res, $pId );
 					break;
 				case "wsarrays":
 					$data = $renderMethod->renderWSArrays(
 						$res,
-						$variable
+						$variable,
+						$pId
 					);
 					break;
 				default:
@@ -539,6 +557,11 @@ class WSStatsHooks {
 			$dates['e'] = false;
 		}
 		if ( isset( $options['stats'] ) ) {
+			$pid = WSStatsHooks::getOptionSetting(
+				$options,
+				'id'
+			);
+			$pid = intval( $pid );
 			$wsArrayName = "";
 			$format      = WSStatsHooks::getOptionSetting(
 				$options,
@@ -571,7 +594,8 @@ class WSStatsHooks {
 				$format,
 				$unique,
 				$wsArrayName,
-				$limit
+				$limit,
+				$pid
 			);
 
 			return $data;

@@ -22,11 +22,15 @@ class WSStatsExport {
 
 	/**
 	 * @param \Wikimedia\Rdbms\IResultWrapper $q
+	 * @param int $pId
 	 *
 	 * @return string
 	 */
-	public function renderTable( \Wikimedia\Rdbms\IResultWrapper $q ): string {
+	public function renderTable( \Wikimedia\Rdbms\IResultWrapper $q, int $pId ): string {
 		$data = "{| class=\"sortable wikitable smwtable jquery-tablesorter\"\n";
+		if( $pId !== 0 ) {
+			$data .= "! " . wfMessage( 'wsstats-page-date' )->text() . "\n";
+		}
 		$data .= "! " . wfMessage( 'wsstats-page-id' )->text() . "\n";
 		$data .= "! " . wfMessage( 'wsstats-page-title' )->text() . "\n";
 		$data .= "! " . wfMessage( 'wsstats-page-hits' )->text() . "\n";
@@ -34,6 +38,9 @@ class WSStatsExport {
 			$pTitle = WSStatsHooks::getPageTitleFromID( $row['page_id'] );
 			if( ! is_null( $pTitle ) ) {
 				$data .= "|-\n";
+				if( $pId !== 0 ) {
+					$data .= "| " . $row['added'] . "\n";
+				}
 				$data .= "| " . $row['page_id'] . "\n";
 				$data .= "| " . $pTitle . "\n";
 				$data .= "| " . $row['count'] . "\n";
@@ -46,10 +53,11 @@ class WSStatsExport {
 
 	/**
 	 * @param \Wikimedia\Rdbms\IResultWrapper $q
+	 * @param int $pId
 	 *
 	 * @return string
 	 */
-	public function renderCSV( \Wikimedia\Rdbms\IResultWrapper $q ): string {
+	public function renderCSV( \Wikimedia\Rdbms\IResultWrapper $q, $pId ): string {
 		$data = '';
 		while ( $row = $q->fetchRow() ) {
 			$data .= $row['page_id'] . ";" . $row['count'] . ",";
@@ -70,10 +78,11 @@ class WSStatsExport {
 	/**
 	 * @param mysqli_result $q
 	 * @param string $wsArrayVariableName
+	 * @param int $pId
 	 *
 	 * @return string
 	 */
-	public function renderWSArrays( \Wikimedia\Rdbms\IResultWrapper $q, string $wsArrayVariableName ): string {
+	public function renderWSArrays( \Wikimedia\Rdbms\IResultWrapper $q, string $wsArrayVariableName, int $pId ): string {
 		global $IP;
 		if( ! $this->extensionInstalled( 'WSArrays' ) ) return "";
 		if( file_exists( $IP . '/extensions/WSArrays/ComplexArrayWrapper.php' ) ) {
