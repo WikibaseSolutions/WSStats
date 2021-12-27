@@ -288,6 +288,7 @@ class WSStatsHooks {
 			$cnt = 'DISTINCT(user_id)';
 		}
 
+
 		$lb       = MediaWikiServices::getInstance()->getDBLoadBalancer();
 		$dbr      = $lb->getConnectionRef( DB_REPLICA );
 		$dbResult = array();
@@ -297,39 +298,39 @@ class WSStatsHooks {
 				'page_id',
 				"count" => 'COUNT(' . $cnt . ')'
 			];
-		} else {
-			$selectWhat = [
-				'page_id',
-				"count" => 'COUNT(' . $cnt . ')',
-				'added'
-			];
-		}
-		if( $pId === 0 ) {
 			$selectOptions = [
 				'GROUP BY' => 'page_id',
 				'ORDER BY' => 'count DESC',
 				'LIMIT'    => $limit
 			];
 		} else {
+			$selectWhat = [
+				'page_id',
+				'Date' => 'DATE(added)',
+				"count" => 'COUNT(' . $cnt . ')'
+			];
 			$selectOptions = [
-				'ORDER BY' => 'added ASC',
+				'GROUP BY' => 'Date',
+				'ORDER BY' => 'Date ASC',
 				'LIMIT'    => $limit
 			];
 		}
+
 		$selectConditions = array();
 
+		if( $pId !== 0 ){
+			$selectConditions[] = "page_id = '" . $pId . "'";
+		}
+
 		if ( $dates === false ) {
+
 			//$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS GROUP BY page_id ORDER BY count DESC LIMIT ' . $limit;
 		} else {
 			if ( $dates['e'] === false ) {
-				$selectConditions = [
-					'added BETWEEN \'' . $dates["b"] . '\' AND AND NOW()'
-				];
+				$selectConditions[] = 'added BETWEEN \'' . $dates["b"] . '\' AND AND NOW()';
 				//$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE added BETWEEN \'' . $dates["b"] . '\' AND NOW() GROUP BY page_id ORDER BY count DESC LIMIT ' . $limit;
 			} else {
-				$selectConditions = [
-					'added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\''
-				];
+				$selectConditions[] = 'added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\'';
 				//$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\' GROUP BY page_id ORDER BY COUNT DESC LIMIT ' . $limit;
 			}
 		}
@@ -341,6 +342,7 @@ class WSStatsHooks {
 			__METHOD__,
 			$selectOptions
 		);
+
 		$data = "";
 		if ( $res->numRows() > 0 ) {
 			$renderMethod = new WSStatsExport();
@@ -556,12 +558,12 @@ class WSStatsHooks {
 		if ( $dates['e'] !== false && self::validateDate( $dates['e'] ) === false ) {
 			$dates['e'] = false;
 		}
+		$pid = WSStatsHooks::getOptionSetting(
+			$options,
+			'id'
+		);
+		$pid = intval( $pid );
 		if ( isset( $options['stats'] ) ) {
-			$pid = WSStatsHooks::getOptionSetting(
-				$options,
-				'id'
-			);
-			$pid = intval( $pid );
 			$wsArrayName = "";
 			$format      = WSStatsHooks::getOptionSetting(
 				$options,
@@ -600,11 +602,6 @@ class WSStatsHooks {
 
 			return $data;
 		}
-		$pid = WSStatsHooks::getOptionSetting(
-			$options,
-			'id'
-		);
-		$pid = intval( $pid );
 		if ( $pid !== 0 ) {
 			$type = WSStatsHooks::getOptionSetting(
 				$options,

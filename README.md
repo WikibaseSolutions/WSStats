@@ -1,6 +1,7 @@
 # WSStats
 This MediaWiki extension counts pageviews by user
 
+* Version 1.0.7 : Added statistics over time for pages
 * Version 1.0.6 : Fixed path to sql tables
 * Version 1.0.5 : Rewrote database queries to use MW database abstraction layer.
 * Version 1.0.4 : Security fix! Unhandled user input. Update to 1.0.4 as soon as possible. 
@@ -139,8 +140,26 @@ This returns a csv
 This returns nothing but only sets WSArray key. Nothing happens when the WSArrays extension is not installed
 ```
 {{#wsstats:stats
-|format:wsarrays}}
+|format:wsarrays
 |name=<wsarray key name>}}
+```
+```
+Get the result from WSArrays:
+{{#caprint:<wsarray key name>}} 
+```
+
+
+#### Get statistics of one page during a time period and limit to 100 results
+New since version 1.0.7
+
+This returns a table
+```
+{{#wsstats:stats
+|id=1
+|start date=2018-02-01
+|end date=2021-02-08
+|limit 100
+}}
 ```
 ```
 Get the result from WSArrays:
