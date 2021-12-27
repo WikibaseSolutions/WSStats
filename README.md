@@ -161,10 +161,7 @@ This returns a table
 |limit 100
 }}
 ```
-```
-Get the result from WSArrays:
-{{#caprint:<wsarray key name>}} 
-```
+
 
 #### For all queries you can add a unique identifier to only return unique views
 This returns a table
