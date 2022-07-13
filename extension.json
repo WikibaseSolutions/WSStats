@@ -1,6 +1,6 @@
 {
   "name": "WSStats",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "author": [
     "Sen-Sai"
   ],
@@ -15,11 +15,11 @@
   "config": {
     "WSStats": {
       "value": {
-        "skip_anonymous": true,
+        "skip_anonymous": false,
         "skip_user_groups": [
           "sysop"
         ],
-        "count_all_usergroups": false,
+        "count_all_usergroups": true,
         "ignore_in_url": [
           "action=edit",
           "veaction=edit"

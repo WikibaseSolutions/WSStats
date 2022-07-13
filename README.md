@@ -1,6 +1,7 @@
 # WSStats
 This MediaWiki extension counts pageviews by user
 
+* Version 1.0.8 : Removed global references
 * Version 1.0.7 : Added statistics over time for pages
 * Version 1.0.6 : Fixed path to sql tables
 * Version 1.0.5 : Rewrote database queries to use MW database abstraction layer.

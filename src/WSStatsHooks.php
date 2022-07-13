@@ -9,8 +9,8 @@
 
 namespace WSStats;
 
-use MediaWiki\User\UserGroupManager;
 use Parser, Title, ALTree, OutputPage, Skin, WSStats\export\WSStatsExport, MediaWiki\MediaWikiServices;
+use RequestContext;
 
 if ( ! defined( 'MEDIAWIKI' ) ) {
 	die( 'This file is a MediaWiki extension, it is not a valid entry point' );
@@ -43,14 +43,6 @@ class WSStatsHooks {
 		return $wgUser->isAnon();
 	}
 
-	public static function dreamingOfJesse() {
-		echo "Dreaming of you every day\n";
-
-		for ($i = 0; $i < 10000; $i++) {
-			echo "forever...\n";
-		}
-	}
-
 	/**
 	 * @param string $name
 	 *
@@ -58,8 +50,8 @@ class WSStatsHooks {
 	 */
 	public static function getConfigSetting( string $name ) {
 		$config = MediaWikiServices::getInstance()->getMainConfig();
-		if ( $config->has( 'FlexFormConfig' ) ) {
-			$WSStatsConfig = $config->get( 'FlexFormConfig' );
+		if ( $config->has( 'WSStats' ) ) {
+			$WSStatsConfig = $config->get( 'WSStats' );
 			if ( isset ( $WSStatsConfig[$name] ) ) {
 				return $WSStatsConfig[$name];
 			}
@@ -77,8 +69,6 @@ class WSStatsHooks {
 		if ( is_null( $title ) ) {
 			return null;
 		}
-		self::dreamingOfJesse();
-
 		return $title->getFullText();
 	}
 
@@ -433,10 +423,10 @@ class WSStatsHooks {
 	 * @return bool
 	 */
 	private static function countAllUserGroups(): bool {
-		$user = \RequestContext::getMain()->getUser();
-		$uGroups =  UserGroupManager::getUserGroups( $user );
+		$user = RequestContext::getMain()->getUser();
+		$uGroups = MediaWikiServices::getInstance()->getUserGroupManager()->getUserGroups( $user );
 		$skipUserGroups = self::getConfigSetting( 'skip_user_groups' );
-		if ( $skipUserGroups !== true ) {
+		if ( $skipUserGroups !== false ) {
 			if ( is_array( $skipUserGroups) ) {
 				$groups = $skipUserGroups;
 				foreach ( $groups as $group ) {
@@ -459,10 +449,9 @@ class WSStatsHooks {
 	 * @return bool
 	 */
 	private static function ignoreInUrl( $ref ): bool {
-		global $wgWSStats;
-		if ( isset( $wgWSStats['ignore_in_url'] ) && is_array( $wgWSStats['ignore_in_url'] ) && $ref !== false ) {
-			$ignore = $groups = $wgWSStats['ignore_in_url'];
-			foreach ( $ignore as $single ) {
+		$ignoreInUrl = self::getConfigSetting( 'ignore_in_url' );
+		if ( $ignoreInUrl !== false && is_array( $ignoreInUrl ) && $ref !== false ) {
+			foreach ( $ignoreInUrl as $single ) {
 				if ( strpos(
 					     $ref,
 					     $single
@@ -479,8 +468,8 @@ class WSStatsHooks {
 	 * @return bool
 	 */
 	private static function removeDeletePages(): bool {
-		global $wgWSStats;
-		if ( $wgWSStats['remove_deleted_pages_from_stats'] === true ) {
+		$removeDeletePagesFromStats = self::getConfigSetting( 'remove_deleted_pages_from_stats' );
+		if ( $removeDeletePagesFromStats === true ) {
 			return true;
 		}
 
@@ -491,9 +480,10 @@ class WSStatsHooks {
 	 * @return bool
 	 */
 	private static function skipAnonymous(): bool {
-		global $wgUser, $wgWSStats;
-		if ( isset( $wgWSStats['skip_anonymous'] ) && $wgWSStats['skip_anonymous'] === true ) {
-			if ( $wgUser->isAnon() ) {
+		$user = RequestContext::getMain()->getUser();
+		$skipAnonymous = self::getConfigSetting( 'skip_anonymous' );
+		if ( $skipAnonymous === true ) {
+			if ( $user->isAnon() ) {
 				return true;
 			}
 		}
@@ -509,7 +499,7 @@ class WSStatsHooks {
 	 * @return bool
 	 */
 	public static function onBeforePageDisplay( outputPage &$output, Skin &$skin ): bool {
-		global $wgUser;
+		$user = RequestContext::getMain()->getUser();
 
 		if ( isset( $_SERVER['HTTP_REFERER'] ) ) {
 			$ref = $_SERVER['HTTP_REFERER'];
@@ -527,10 +517,10 @@ class WSStatsHooks {
 			return true;
 		}
 
-		if ( $wgUser->isAnon() ) {
+		if ( $user->isAnon() ) {
 			$data['user_id'] = 0;
 		} else {
-			$data['user_id'] = $wgUser->getID();
+			$data['user_id'] = $user->getID();
 		}
 		$title = $output->getTitle();
 
@@ -538,6 +528,7 @@ class WSStatsHooks {
 			return true;
 		}
 		$data['page_id'] = $title->getArticleID();
+
 		if ( $data['page_id'] != 0 ) {
 			WSStatsHooks::insertRecord(
 				self::DBTABLE,
@@ -705,7 +696,8 @@ class WSStatsHooks {
 
 			return false;
 		}
-
+		var_dump( $table );
+		var_dump( $vals );
 		if ( $res ) {
 			return true;
 		} else {
