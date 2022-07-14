@@ -16,9 +16,6 @@ if ( ! defined( 'MEDIAWIKI' ) ) {
 	die( 'This file is a MediaWiki extension, it is not a valid entry point' );
 }
 
-ERROR_REPORTING( E_ALL );
-ini_set( 'display_errors', 1 );
-
 /**
  * Class WSStatsHooks
  */
@@ -696,8 +693,7 @@ class WSStatsHooks {
 
 			return false;
 		}
-		var_dump( $table );
-		var_dump( $vals );
+
 		if ( $res ) {
 			return true;
 		} else {
