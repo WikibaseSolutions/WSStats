@@ -10,6 +10,7 @@
 namespace WSStats;
 
 use Parser, Title, ALTree, OutputPage, Skin, WSStats\export\WSStatsExport, MediaWiki\MediaWikiServices;
+use RequestContext;
 
 if ( ! defined( 'MEDIAWIKI' ) ) {
 	die( 'This file is a MediaWiki extension, it is not a valid entry point' );
@@ -39,6 +40,21 @@ class WSStatsHooks {
 		return $wgUser->isAnon();
 	}
 
+	/**
+	 * @param string $name
+	 *
+	 * @return mixed
+	 */
+	public static function getConfigSetting( string $name ) {
+		$config = MediaWikiServices::getInstance()->getMainConfig();
+		if ( $config->has( 'WSStats' ) ) {
+			$WSStatsConfig = $config->get( 'WSStats' );
+			if ( isset ( $WSStatsConfig[$name] ) ) {
+				return $WSStatsConfig[$name];
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * @param int $id
@@ -50,7 +66,6 @@ class WSStatsHooks {
 		if ( is_null( $title ) ) {
 			return null;
 		}
-
 		return $title->getFullText();
 	}
 
@@ -149,11 +164,11 @@ class WSStatsHooks {
 
 		if ( file_exists( $tables ) ) {
 			$updater->addExtensionUpdate( array(
-											  'addTable',
-											  self::DBTABLE,
-											  $tables,
-											  true
-										  ) );
+				'addTable',
+				self::DBTABLE,
+				$tables,
+				true
+			) );
 		} else {
 			throw new \MWException( "WSStats does not support $dbt." );
 		}
@@ -280,7 +295,7 @@ class WSStatsHooks {
 		string $variable = "",
 		int $limit = 10,
 		int $pId = 0
-	) : string {
+	): string {
 		global $wgDBprefix;
 
 		$cnt = '*';
@@ -293,8 +308,8 @@ class WSStatsHooks {
 		$dbr      = $lb->getConnectionRef( DB_REPLICA );
 		$dbResult = array();
 
-		if( $pId === 0 ) {
-			$selectWhat = [
+		if ( $pId === 0 ) {
+			$selectWhat    = [
 				'page_id',
 				"count" => 'COUNT(' . $cnt . ')'
 			];
@@ -304,9 +319,9 @@ class WSStatsHooks {
 				'LIMIT'    => $limit
 			];
 		} else {
-			$selectWhat = [
+			$selectWhat    = [
 				'page_id',
-				'Date' => 'DATE(added)',
+				'Date'  => 'DATE(added)',
 				"count" => 'COUNT(' . $cnt . ')'
 			];
 			$selectOptions = [
@@ -318,7 +333,7 @@ class WSStatsHooks {
 
 		$selectConditions = array();
 
-		if( $pId !== 0 ){
+		if ( $pId !== 0 ) {
 			$selectConditions[] = "page_id = '" . $pId . "'";
 		}
 
@@ -335,7 +350,7 @@ class WSStatsHooks {
 			}
 		}
 
-		$res  = $dbr->select(
+		$res = $dbr->select(
 			$wgDBprefix . self::DBTABLE,
 			$selectWhat,
 			$selectConditions,
@@ -377,13 +392,13 @@ class WSStatsHooks {
 	 */
 	public static function getOptionSetting( array $options, string $k, bool $checkEmpty = true ) {
 		if ( $checkEmpty ) {
-			if ( isset( $options[$k] ) && $options[$k] != '' ) {
-				return $options[$k];
+			if ( isset( $options[ $k ] ) && $options[ $k ] != '' ) {
+				return $options[ $k ];
 			} else {
 				return false;
 			}
 		} else {
-			if ( isset( $options[$k] ) ) {
+			if ( isset( $options[ $k ] ) ) {
 				return true;
 			} else {
 				return false;
@@ -404,15 +419,17 @@ class WSStatsHooks {
 	/**
 	 * @return bool
 	 */
-	private static function countAllUserGroups() : bool {
-		global $wgUser, $wgWSStats;
-		if ( $wgWSStats['count_all_usergroups'] !== true ) {
-			if ( isset( $wgWSStats['skip_user_groups'] ) && is_array( $wgWSStats['skip_user_groups'] ) ) {
-				$groups = $wgWSStats['skip_user_groups'];
+	private static function countAllUserGroups(): bool {
+		$user = RequestContext::getMain()->getUser();
+		$uGroups = MediaWikiServices::getInstance()->getUserGroupManager()->getUserGroups( $user );
+		$skipUserGroups = self::getConfigSetting( 'skip_user_groups' );
+		if ( $skipUserGroups !== false ) {
+			if ( is_array( $skipUserGroups) ) {
+				$groups = $skipUserGroups;
 				foreach ( $groups as $group ) {
 					if ( in_array(
 						$group,
-						$wgUser->getGroups()
+						$uGroups
 					) ) {
 						return true;
 					}
@@ -428,15 +445,14 @@ class WSStatsHooks {
 	 *
 	 * @return bool
 	 */
-	private static function ignoreInUrl( $ref ) : bool {
-		global $wgWSStats;
-		if ( isset( $wgWSStats['ignore_in_url'] ) && is_array( $wgWSStats['ignore_in_url'] ) && $ref !== false ) {
-			$ignore = $groups = $wgWSStats['ignore_in_url'];
-			foreach ( $ignore as $single ) {
+	private static function ignoreInUrl( $ref ): bool {
+		$ignoreInUrl = self::getConfigSetting( 'ignore_in_url' );
+		if ( $ignoreInUrl !== false && is_array( $ignoreInUrl ) && $ref !== false ) {
+			foreach ( $ignoreInUrl as $single ) {
 				if ( strpos(
-						 $ref,
-						 $single
-					 ) !== false ) {
+					     $ref,
+					     $single
+				     ) !== false ) {
 					return true;
 				}
 			}
@@ -448,9 +464,9 @@ class WSStatsHooks {
 	/**
 	 * @return bool
 	 */
-	private static function removeDeletePages() : bool {
-		global $wgWSStats;
-		if ( $wgWSStats['remove_deleted_pages_from_stats'] === true ) {
+	private static function removeDeletePages(): bool {
+		$removeDeletePagesFromStats = self::getConfigSetting( 'remove_deleted_pages_from_stats' );
+		if ( $removeDeletePagesFromStats === true ) {
 			return true;
 		}
 
@@ -460,10 +476,11 @@ class WSStatsHooks {
 	/**
 	 * @return bool
 	 */
-	private static function skipAnonymous() : bool {
-		global $wgUser, $wgWSStats;
-		if ( isset( $wgWSStats['skip_anonymous'] ) && $wgWSStats['skip_anonymous'] === true ) {
-			if ( $wgUser->isAnon() ) {
+	private static function skipAnonymous(): bool {
+		$user = RequestContext::getMain()->getUser();
+		$skipAnonymous = self::getConfigSetting( 'skip_anonymous' );
+		if ( $skipAnonymous === true ) {
+			if ( $user->isAnon() ) {
 				return true;
 			}
 		}
@@ -478,8 +495,8 @@ class WSStatsHooks {
 	 *
 	 * @return bool
 	 */
-	public static function onBeforePageDisplay( outputPage &$output, Skin &$skin ) : bool {
-		global $wgUser;
+	public static function onBeforePageDisplay( outputPage &$output, Skin &$skin ): bool {
+		$user = RequestContext::getMain()->getUser();
 
 		if ( isset( $_SERVER['HTTP_REFERER'] ) ) {
 			$ref = $_SERVER['HTTP_REFERER'];
@@ -497,10 +514,10 @@ class WSStatsHooks {
 			return true;
 		}
 
-		if ( $wgUser->isAnon() ) {
+		if ( $user->isAnon() ) {
 			$data['user_id'] = 0;
 		} else {
-			$data['user_id'] = $wgUser->getID();
+			$data['user_id'] = $user->getID();
 		}
 		$title = $output->getTitle();
 
@@ -508,6 +525,7 @@ class WSStatsHooks {
 			return true;
 		}
 		$data['page_id'] = $title->getArticleID();
+
 		if ( $data['page_id'] != 0 ) {
 			WSStatsHooks::insertRecord(
 				self::DBTABLE,
@@ -539,7 +557,7 @@ class WSStatsHooks {
 			$options,
 			'limit'
 		);
-		$limit = intval( $limit );
+		$limit   = intval( $limit );
 		if ( $limit === 0 ) {
 			$limit = 10;
 		}
@@ -633,7 +651,7 @@ class WSStatsHooks {
 		return "ok, move along. Nothing to see here..";
 	}
 
-	private static function deleteRecord( $table, $pId ) : bool {
+	private static function deleteRecord( $table, $pId ): bool {
 		$dbw               = wfGetDB( DB_MASTER );
 		$dbw->IngoreErrors = true;
 		try {
@@ -661,7 +679,7 @@ class WSStatsHooks {
 	 *
 	 * @return bool
 	 */
-	public static function insertRecord( string $table, array $vals ) : bool {
+	public static function insertRecord( string $table, array $vals ): bool {
 		$dbw               = wfGetDB( DB_MASTER );
 		$dbw->IngoreErrors = true;
 		try {
@@ -710,11 +728,11 @@ class WSStatsHooks {
 						$value = strtolower( trim( $pair[1] ) );
 					}
 
-					$results[$name] = $value;
+					$results[ $name ] = $value;
 				}
 				if ( count( $pair ) === 1 ) {
-					$name           = trim( $pair[0] );
-					$results[$name] = true;
+					$name             = trim( $pair[0] );
+					$results[ $name ] = true;
 				}
 			}
 		}
