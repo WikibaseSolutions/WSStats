@@ -1,6 +1,6 @@
 {
   "name": "WSStats",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "author": [
     "Sen-Sai"
   ],
@@ -15,11 +15,11 @@
   "config": {
     "WSStats": {
       "value": {
-        "skip_anonymous": false,
+        "skip_anonymous": true,
         "skip_user_groups": [
           "sysop"
         ],
-        "count_all_usergroups": true,
+        "count_all_usergroups": false,
         "ignore_in_url": [
           "action=edit",
           "veaction=edit"
@@ -48,5 +48,8 @@
   "SpecialPages": {
     "WSStats": "WSStats\\specials\\SpecialWSStats"
   },
-  "manifest_version": 2
+  "manifest_version": 2,
+  "requires": {
+    "MediaWiki": ">= 1.29.0"
+  }
 }
