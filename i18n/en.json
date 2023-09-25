@@ -10,5 +10,6 @@
 	"wsstats-page-date": "Date",
 	"wsstats-page-title": "Page title",
 	"wsstats-page-id": "Page ID",
-	"wsstats-page-hits": "Page hits"
+	"wsstats-page-hits": "Page hits",
+	"wsstats-special-list": "Top visited pages of this wiki"
 }

@@ -9,6 +9,7 @@
 
 namespace WSStats;
 
+use Exception;
 use Parser, Title, ALTree, OutputPage, Skin, WSStats\export\WSStatsExport, MediaWiki\MediaWikiServices;
 use RequestContext;
 
@@ -34,7 +35,7 @@ class WSStatsHooks {
 	/**
 	 * @return bool
 	 */
-	public static function isAnon() {
+	public static function isAnon(): bool {
 		global $wgUser;
 
 		return $wgUser->isAnon();
@@ -45,7 +46,7 @@ class WSStatsHooks {
 	 *
 	 * @return mixed
 	 */
-	public static function getConfigSetting( string $name ) {
+	public static function getConfigSetting( string $name ) : mixed {
 		$config = MediaWikiServices::getInstance()->getMainConfig();
 		if ( $config->has( 'WSStats' ) ) {
 			$WSStatsConfig = $config->get( 'WSStats' );
@@ -61,7 +62,7 @@ class WSStatsHooks {
 	 *
 	 * @return mixed
 	 */
-	public static function getPageTitleFromID( $id ) {
+	public static function getPageTitleFromID( $id ) : mixed {
 		$title = Title::newFromID( $id );
 		if ( is_null( $title ) ) {
 			return null;
@@ -69,7 +70,13 @@ class WSStatsHooks {
 		return $title->getFullText();
 	}
 
-	public static function validateDate( $date, $format = 'Y-m-d H:i:s' ) {
+	/**
+	 * @param string $date
+	 * @param string $format
+	 *
+	 * @return bool
+	 */
+	public static function validateDate( string $date, string $format = 'Y-m-d H:i:s' ) {
 		if ( strpos(
 			$date,
 			' '
@@ -151,6 +158,8 @@ class WSStatsHooks {
 	 * When running maintenance update with will add the database tables
 	 *
 	 * @param [type] $updater [description]
+	 *
+	 * @throws \MWException
 	 */
 	public static function addTables( $updater ) {
 		$dbt = $updater->getDB()->getType();
@@ -187,16 +196,11 @@ class WSStatsHooks {
 	 */
 	public static function getViewsPerPage( int $id, $dates = false, $type = false, bool $unique = false ) {
 		global $wgDBprefix;
-		switch ( $type ) {
-			case "only anonymous":
-				$dbType = "user_id = 0 ";
-				break;
-			case "only user":
-				$dbType = "user_id <> 0 ";
-				break;
-			default:
-				$dbType = false;
-		}
+		$dbType = match ( $type ) {
+			"only anonymous" => "user_id = 0 ",
+			"only user" => "user_id <> 0 ",
+			default => false,
+		};
 		$cnt = '*';
 		if ( $unique ) {
 			$cnt = 'DISTINCT(user_id)';
@@ -271,7 +275,7 @@ class WSStatsHooks {
 			$selectOptions
 		);
 		$dbResult = $res->fetchRow();
-		if ( ! isset( $dbResult['count'] ) || empty( $dbResult['count'] ) ) {
+		if ( !isset( $dbResult['count'] ) || empty( $dbResult['count'] ) ) {
 			return 0;
 		} else {
 			return $dbResult['count'];
@@ -361,23 +365,16 @@ class WSStatsHooks {
 		$data = "";
 		if ( $res->numRows() > 0 ) {
 			$renderMethod = new WSStatsExport();
-			switch ( $render ) {
-				case "table":
-					$data = $renderMethod->renderTable( $res, $pId );
-					break;
-				case "csv":
-					$data = $renderMethod->renderCSV( $res, $pId );
-					break;
-				case "wsarrays":
-					$data = $renderMethod->renderWSArrays(
-						$res,
-						$variable,
-						$pId
-					);
-					break;
-				default:
-					$data = "";
-			}
+			$data = match ( $render ) {
+				"table" => $renderMethod->renderTable( $res,
+					$pId ),
+				"csv" => $renderMethod->renderCSV( $res,
+					$pId ),
+				"wsarrays" => $renderMethod->renderWSArrays( $res,
+					$variable,
+					$pId ),
+				default => "",
+			};
 		}
 
 		return $data;
@@ -498,11 +495,7 @@ class WSStatsHooks {
 	public static function onBeforePageDisplay( outputPage &$output, Skin &$skin ): bool {
 		$user = RequestContext::getMain()->getUser();
 
-		if ( isset( $_SERVER['HTTP_REFERER'] ) ) {
-			$ref = $_SERVER['HTTP_REFERER'];
-		} else {
-			$ref = false;
-		}
+		$ref = $_SERVER['HTTP_REFERER'] ?? false;
 
 		if ( self::countAllUserGroups() ) {
 			return true;
@@ -541,7 +534,7 @@ class WSStatsHooks {
 	 *
 	 * @return int|mixed|string
 	 */
-	public static function wsstats( Parser &$parser ) {
+	public static function wsstats( Parser &$parser ) : mixed {
 		$options = WSStatsHooks::extractOptions(
 			array_slice(
 				func_get_args(),
@@ -651,9 +644,15 @@ class WSStatsHooks {
 		return "ok, move along. Nothing to see here..";
 	}
 
-	private static function deleteRecord( $table, $pId ): bool {
-		$dbw               = wfGetDB( DB_MASTER );
-		$dbw->IngoreErrors = true;
+	/**
+	 * @param string $table
+	 * @param int|string $pId
+	 *
+	 * @return bool
+	 */
+	private static function deleteRecord( string $table, int|string $pId ): bool {
+		$lb          = MediaWikiServices::getInstance()->getDBLoadBalancer();
+		$dbw         = $lb->getConnectionRef( DB_PRIMARY );
 		try {
 			$res = $dbw->delete(
 				$table,
@@ -680,8 +679,8 @@ class WSStatsHooks {
 	 * @return bool
 	 */
 	public static function insertRecord( string $table, array $vals ): bool {
-		$dbw               = wfGetDB( DB_MASTER );
-		$dbw->IngoreErrors = true;
+		$lb          = MediaWikiServices::getInstance()->getDBLoadBalancer();
+		$dbw         = $lb->getConnectionRef( DB_PRIMARY );
 		try {
 			$res = $dbw->insert(
 				$table,
@@ -707,7 +706,7 @@ class WSStatsHooks {
 	 * associative array in form [name] => value. If no = is provided,
 	 * true is assumed like this: [name] => true
 	 *
-	 * @param array string $options
+	 * @param array $options
 	 *
 	 * @return array $results
 	 */

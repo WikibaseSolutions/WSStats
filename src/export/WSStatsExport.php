@@ -63,7 +63,7 @@ class WSStatsExport {
 	 *
 	 * @return string
 	 */
-	public function renderCSV( \Wikimedia\Rdbms\IResultWrapper $q, $pId ) : string {
+	public function renderCSV( \Wikimedia\Rdbms\IResultWrapper $q, $pId ): string {
 		$data = '';
 		if ( $pId === 0 ) {
 			while ( $row = $q->fetchRow() ) {
@@ -86,7 +86,7 @@ class WSStatsExport {
 	 *
 	 * @return mixed
 	 */
-	private function extensionInstalled( $name ) {
+	private function extensionInstalled( string $name ) {
 		return extensionRegistry::getInstance()->isLoaded( $name );
 	}
 
@@ -101,7 +101,7 @@ class WSStatsExport {
 		\Wikimedia\Rdbms\IResultWrapper $q,
 		string $wsArrayVariableName,
 		int $pId
-	) : string {
+	): string {
 		global $IP;
 		if ( !$this->extensionInstalled( 'WSArrays' ) ) {
 			return "";

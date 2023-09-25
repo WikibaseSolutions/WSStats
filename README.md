@@ -1,5 +1,5 @@
 # WSStats
-This MediaWiki extension counts pageviews by user
+This MediaWiki 1.39.x extension counts pageviews by user
 
 * Version 1.0.8 : Removed global references
 * Version 1.0.7 : Added statistics over time for pages
@@ -58,16 +58,11 @@ $wgWSStats['skip_anonymous'] = false;
 # Skip if user is in following groups
 $wgWSStats['skip_user_groups'][] = 'sysop';
 $wgWSStats['skip_user_groups'][] = 'admin';
+
+# Allow all usergroups, including sysop
+$wgWSStats['skip_user_groups'] = [];
 ````
 
-Count all hits:
-````
-$wgWSStats = array();
-$wgWSStats['count_all_usergroups'] = true;
-````
-
-***NOTE**: If you have set $wgWSStats['count_all']=true; then $wgWSStats['skip_user_groups'] is ignored.*
-''
 
 Skip page with certain text in their referer url. Default action=edit and veaction=edit are ignored. This configuration option is case sensitive:
 ````

@@ -3,6 +3,7 @@
 namespace WSStats\specials;
 
 use SpecialPage;
+use WSStats\WSStatsHooks;
 
 /**
  * Overview for the WSStats extension
@@ -16,16 +17,17 @@ class SpecialWSStats extends SpecialPage {
 	}
 
 	/**
-	 * Show the page to the user
+	 * @param null|string $sub
 	 *
-	 * @param string $sub The subpage string argument (if any).
+	 * @return string
 	 */
 	public function execute( $sub ) {
 		$out = $this->getOutput();
 		$out->setPageTitle( "WSStats" );
-		$out->addHTML( '<p>Soon..</p>' );
+		$out->addWikiMsg( 'wsstats-special-list' );
+		$out->addWikiTextAsContent( WSStatsHooks::getMostViewedPages() );
 
-		return;
+		return '';
 	}
 
 }
