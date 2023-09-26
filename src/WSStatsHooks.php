@@ -182,6 +182,9 @@ class WSStatsHooks {
 			throw new \MWException( "WSStats does not support $dbt." );
 		}
 
+		$updater->addExtensionField( self::DBTABLE, 'title', __DIR__ . "/../sql/WSStatsAddTitle.$dbt" );
+
+
 		return true;
 	}
 
