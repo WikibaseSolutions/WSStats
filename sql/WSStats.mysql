@@ -4,4 +4,5 @@ CREATE TABLE /*_*/WSPS (
   `user_id` int(11) NOT NULL default '0',
   `added` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
   `title` varchar(250) NOT NULL DEFAULT ''
+  `isSpecialPage` INT(1) NOT NULL DEFAULT '0'
 ) /*$wgDBTableOptions*/;

@@ -1,6 +1,6 @@
 {
   "name": "WSStats",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "author": [
     "Sen-Sai"
   ],
@@ -19,7 +19,7 @@
         "skip_user_groups": [
           "sysop"
         ],
-        "count_all_usergroups": true,
+        "countSpecialPages" : true,
         "ignore_in_url": [
           "action=edit",
           "veaction=edit"

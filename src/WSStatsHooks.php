@@ -183,6 +183,7 @@ class WSStatsHooks {
 		}
 
 		$updater->addExtensionField( self::DBTABLE, 'title', __DIR__ . "/../sql/WSStatsAddTitle.$dbt" );
+		$updater->addExtensionField( self::DBTABLE, 'isSpecialPage', __DIR__ . "/../sql/WSStatsAddSpecialBool.$dbt" );
 
 
 		return true;
@@ -520,9 +521,13 @@ class WSStatsHooks {
 		if ( $title === null ) {
 			return true;
 		}
+		if ( $title->isSpecialPage() ) {
+			$data['isSpecialPage'] = 1;
+		}
+		$data['title'] = $title->getFullText();
 		$data['page_id'] = $title->getArticleID();
 
-		if ( $data['page_id'] != 0 ) {
+		if ( $data['page_id'] != 0 || $title->isSpecialPage() ) {
 			WSStatsHooks::insertRecord(
 				self::DBTABLE,
 				$data

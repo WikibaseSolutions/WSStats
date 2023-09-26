@@ -1,0 +1,2 @@
+ALTER TABLE /*_*/WSPS
+    ADD COLUMN isSpecialPage INT(1) NOT NULL DEFAULT '0';
