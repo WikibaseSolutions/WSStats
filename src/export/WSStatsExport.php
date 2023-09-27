@@ -113,19 +113,16 @@ class WSStatsExport {
 		$result    = [];
 		$t         = 0;
 		while ( $row = $q->fetchRow() ) {
-			$pTitle = WSStatsHooks::getPageTitleFromID( $row['page_id'] );
-			if ( $pTitle !== null ) {
-				if ( $pId === 0 ) {
-					$result[$t][wfMessage( 'wsstats-page-id' )->text()] = $row['page_id'];
-					$result[$t][wfMessage( 'wsstats-page-title' )->text()] = $pTitle;
-					$result[$t][wfMessage( 'wsstats-page-hits' )->text()] = $row['count'];
-				} else {
-					$result[$t][wfMessage( 'wsstats-page-date' )->text()] = $row['Date'];
-					$result[$t][wfMessage( 'wsstats-page-hits' )->text()] = $row['count'];
-				}
-				$t++;
+			if ( $pId === 0 ) {
+				$result[$t][wfMessage( 'wsstats-page-id' )->text()] = $row['page_id'];
+				$result[$t][wfMessage( 'wsstats-page-title' )->text()] = $row['title'];
+				$result[$t][wfMessage( 'wsstats-page-hits' )->text()] = $row['count'];
+			} else {
+				$result[$t][wfMessage( 'wsstats-page-date' )->text()] = $row['Date'];
+				$result[$t][wfMessage( 'wsstats-page-hits' )->text()] = $row['count'];
 			}
-		}
+			$t++;
+			}
 		return $result;
 	}
 

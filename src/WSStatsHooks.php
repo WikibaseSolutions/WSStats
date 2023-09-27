@@ -223,7 +223,7 @@ class WSStatsHooks {
 			"count" => 'COUNT(' . $cnt . ')'
 		];
 		$selectOptions    = [
-			'GROUP BY' => 'page_id',
+			'GROUP BY' => 'title',
 			'ORDER BY' => 'count DESC',
 			'LIMIT'    => 1
 		];
@@ -263,7 +263,7 @@ class WSStatsHooks {
 	 * @param int $pId
 	 * @param string $pTitle
 	 *
-	 * @return string
+	 * @return string|array
 	 */
 	public static function getMostViewedPages(
 		$dates = false,
@@ -273,7 +273,7 @@ class WSStatsHooks {
 		int $limit = 10,
 		int $pId = 0,
 		string $pTitle = ''
-	): string {
+	): string|array {
 		global $wgDBprefix;
 
 		$cnt = '*';
@@ -294,7 +294,7 @@ class WSStatsHooks {
 				"count" => 'COUNT(' . $cnt . ')'
 			];
 			$selectOptions = [
-				'GROUP BY' => 'page_id',
+				'GROUP BY' => 'title',
 				'ORDER BY' => 'count DESC',
 				'LIMIT'    => $limit
 			];

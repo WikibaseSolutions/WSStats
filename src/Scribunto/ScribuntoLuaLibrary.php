@@ -30,47 +30,63 @@ class ScribuntoLuaLibrary extends \Scribunto_LuaLibraryBase {
 	/**
 	 * This mirrors the functionality of the #wsstats parser function and makes it available
 	 * in Lua. This function will return a table.
-	 * @param string|null $id
-	 * @param string|null $unique
-	 * @param string|null $startDate
-	 * @param string|null $endDate
-	 * @param string|null $limit
-	 * @param string|null $title
+	 * @param array $arguments
 	 *
 	 * @return array
 	 */
 	public function wsstats(
-		?string $id,
-		?string $unique,
-		?string $startDate,
-		?string $endDate,
-		?string $limit,
-		?string $title
+		?array $arguments
 	): array {
-		if ( $id === null ) {
+
+		if ( $arguments === null ) {
+			$arguments = [];
+		}
+		$id = WSStatsHooks::getOptionSetting(
+			$arguments,
+			'id'
+		);
+
+		$title = WSStatsHooks::getOptionSetting(
+			$arguments,
+			'title'
+		);
+
+		if ( $id === false ) {
 			$id = 0;
+		} else {
+			$id = intval( $id );
 		}
 
-		if ( $title === null ) {
+		if ( $title === false ) {
 			$title = '';
 		}
-		if ( $limit === null ) {
+
+		$limit   = WSStatsHooks::getOptionSetting(
+			$arguments,
+			'limit'
+		);
+		if ( $limit === false ) {
 			$limit = 10;
 		}
 		$format = 'lua';
 
-		if ( $unique === null ) {
-			$unique = false;
-		} else {
-			$unique = true;
-		}
+		$unique  = WSStatsHooks::getOptionSetting(
+			$arguments,
+			'unique',
+			false
+		);
 		$selectionMaker = new SelectionMaker();
-		if ( $startDate === null ) {
-			$startDate = false;
-		}
-		if ( $endDate === null ) {
-			$endDate = false;
-		}
+
+		$startDate   = WSStatsHooks::getOptionSetting(
+			$arguments,
+			'startDate'
+		);
+
+		$endDate   = WSStatsHooks::getOptionSetting(
+			$arguments,
+			'endDate'
+		);
+
 		$dates = $selectionMaker->setDatesArray( $startDate,
 			$endDate );
 		$dates = $selectionMaker->checkDates( $dates );
@@ -83,7 +99,6 @@ class ScribuntoLuaLibrary extends \Scribunto_LuaLibraryBase {
 			$id,
 			$title
 		);
-
 		return [ $this->convertToLuaTable( $data ) ];
 	}
 
