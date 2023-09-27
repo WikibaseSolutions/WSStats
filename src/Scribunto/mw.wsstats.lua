@@ -15,40 +15,11 @@ function wsstats.setupInterface()
     package.loaded['mw.wsstats'] = wsstats
 end
 
--- slotContent
-function wsstats.slotContent( slotName, pageName )
-    if not type( slotName ) == 'string' or not type( pageName ) == 'string' or not type( pageName ) == 'nil' then
-        error( 'Invalid parameter type supplied to mw.slots.slotContent()' )
-    end
+-- wsstats stats
+function wsstats.wsstats( id, unique, startDate, endDate, limit, title )
 
-    return php.slotContent( slotName, pageName )
+    return php.wsstats( id, unique, startDate, endDate, limit, title )
 end
 
--- slotTemplates
-function wsstats.slotTemplates( slotName, pageName )
-    if not type( slotName ) == 'string' or not type( pageName ) == 'string' or not type( pageName ) == 'nil' then
-        error( 'Invalid parameter type supplied to mw.slots.slotTemplates()' )
-    end
 
-    return php.slotTemplates( slotName, pageName )
-end
-
--- slotContentModel
-function wsstats.slotContentModel( slotName, pageName )
-    if not type( slotName ) == 'string' or not type( pageName ) == 'string' or not type( pageName ) == 'nil' then
-        error( 'Invalid parameter type supplied to mw.slots.slotContentModel()' )
-    end
-
-    return php.slotContentModel( slotName, pageName )
-end
-
--- slotData
-function wsstats.slotData( slotName, pageName )
-    if not type( slotName ) == 'string' or not type( pageName ) == 'string' or not type( pageName ) == 'nil' then
-        error( 'Invalid parameter type supplied to mw.slots.slotContentModel()' )
-    end
-
-    return php.slotData( slotName, pageName )
-end
-
-return slots
+return wsstats

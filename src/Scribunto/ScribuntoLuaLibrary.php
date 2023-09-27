@@ -1,18 +1,12 @@
 <?php
 
-namespace WSSlots\Scribunto;
+namespace WSStats\Scribunto;
 
 use Error;
 use FormatJson;
 use JsonContent;
 use MediaWiki\MediaWikiServices;
 use MWException;
-use RequestContext;
-use TextContent;
-use WikibaseSolutions\MediaWikiTemplateParser\RecursiveParser;
-use WikiPage;
-use WSSlots\WikiPageTrait;
-use WSSlots\WSSlots;
 use WSStats\Helpers\SelectionMaker;
 use WSStats\WSStatsHooks;
 
@@ -20,7 +14,6 @@ use WSStats\WSStatsHooks;
  * Register the Lua library.
  */
 class ScribuntoLuaLibrary extends \Scribunto_LuaLibraryBase {
-	use WikiPageTrait;
 
 	/**
 	 * @inheritDoc

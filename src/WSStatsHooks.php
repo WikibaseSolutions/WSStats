@@ -12,7 +12,7 @@ namespace WSStats;
 use Exception;
 use Parser, Title, ALTree, OutputPage, Skin, WSStats\export\WSStatsExport, MediaWiki\MediaWikiServices;
 use RequestContext;
-use WSSlots\Scribunto\ScribuntoLuaLibrary;
+use WSStats\Scribunto\ScribuntoLuaLibrary;
 use WSStats\Helpers\SelectionMaker;
 
 if ( ! defined( 'MEDIAWIKI' ) ) {
