@@ -26,15 +26,32 @@ class SpecialWSStats extends SpecialPage {
 		$out = $this->getOutput();
 		$out->setPageTitle( "WSStats" );
 		$out->addWikiMsg( 'wsstats-special-list' );
+
+		if ( isset ( $_POST['doDBUpdate'] ) ) {
+			$result = $this->doDatabaseMaintenance();
+			$out->addHTML( '<p><strong>' . wfMessage( 'wwstats-special-db-need-update-result', $result ) );
+			$out->addHTML( '</strong></p>' );
+		}
+		$result = $this->getRowsForMaintenance();
+		if ( !empty( $result ) ) {
+			$out->addWikiMsg( 'wwstats-special-db-need-update' );
+			$form = '<form method="post">';
+			$form .= '<input type="submit" name="doDBUpdate"';
+			$form .= 'value="'. wfMessage( 'wwstats-special-db-need-update-btn', count( $result ) ) . '"></form>';
+			$out->addHTML( $form );
+		}
 		$out->addWikiTextAsContent( WSStatsHooks::getMostViewedPages() );
 		//$this->databaseMaintenance();
 
 		return '';
 	}
 
-	private function databaseMaintenance() {
-		// TODO: Make this a function to be called from the Special page!
-		$lb       = MediaWikiServices::getInstance()->getDBLoadBalancer();
+
+	/**
+	* @return array
+	 */
+	private function getRowsForMaintenance(): array {
+	$lb       = MediaWikiServices::getInstance()->getDBLoadBalancer();
 		$dbr      = $lb->getConnectionRef( DB_REPLICA );
 		global $wgDBprefix;
 		$res = $dbr->select(
@@ -53,14 +70,22 @@ class SpecialWSStats extends SpecialPage {
 				}
 			}
 		}
+		return $result;
+	}
 
-
+	/**
+	* @return int
+	 */
+	private function doDatabaseMaintenance(): int {
+		$result = $this->getRowsForMaintenance();
 		if ( !empty( $result ) ) {
+			$lb       = MediaWikiServices::getInstance()->getDBLoadBalancer();
 			$dbw      = $lb->getConnectionRef( DB_PRIMARY );
 			foreach( $result as $id=>$title ) {
 				$dbw->update( WSStatsHooks::DBTABLE, [ 'title' => $title ], [ 'id' => $id ] );
 			}
 		}
+		return count( $result );
 
 	}
 

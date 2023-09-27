@@ -79,38 +79,34 @@ class WSStatsHooks {
 	 * @return bool
 	 */
 	public static function validateDate( string $date, string $format = 'Y-m-d H:i:s' ) {
-		if ( strpos(
-			$date,
-			' '
-		) ) {
-			// we have also a time added
-			$xploded      = explode(
-				' ',
-				$date
-			);
-			$timeExploded = explode(
-				":",
-				$xploded[1]
-			);
-			$timeCount    = count( $timeExploded );
-			switch ( $timeCount ) {
-				case 0:
-					$date   = $xploded[0];
-					$format = 'Y-m-d';
-					break;
-				case 1:
-					$format = 'Y-m-d H';
-					break;
-				case 2:
-					$format = 'Y-m-d H:i';
-					break;
-				case 3:
-					$format = 'Y-m-d H:i:s';
-					break;
-				default:
-					$format = 'Y-m-d';
-			}
+		// we have also a time added
+		$xploded      = explode(
+			' ',
+			$date
+		);
+		$timeExploded = explode(
+			":",
+			$xploded[1]
+		);
+		$timeCount    = count( $timeExploded );
+		switch ( $timeCount ) {
+			case 0:
+				$date   = $xploded[0];
+				$format = 'Y-m-d';
+				break;
+			case 1:
+				$format = 'Y-m-d H';
+				break;
+			case 2:
+				$format = 'Y-m-d H:i';
+				break;
+			case 3:
+				$format = 'Y-m-d H:i:s';
+				break;
+			default:
+				$format = 'Y-m-d';
 		}
+
 		$d = \DateTime::createFromFormat(
 			$format,
 			$date
@@ -238,6 +234,7 @@ class WSStatsHooks {
 		} else {
 			$selectConditions = $selectionMaker->createSelectionUsingDates( $id, $title, $dbType, $dates );
 		}
+
 
 		$res = $dbr->select(
 			$wgDBprefix . self::DBTABLE,
@@ -573,6 +570,8 @@ class WSStatsHooks {
 			'end date'
 		);
 		$dates = $selectionMaker->setDatesArray( $startDate, $endDate );
+
+
 		$pid = WSStatsHooks::getOptionSetting(
 			$options,
 			'id'
@@ -636,7 +635,7 @@ class WSStatsHooks {
 				return "";
 			}
 		}
-
+		echo "</pre>";
 		return "ok, move along. Nothing to see here..";
 	}
 

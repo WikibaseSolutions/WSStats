@@ -2,6 +2,8 @@
 
 namespace WSStats\Helpers;
 
+use WSStats\WSStatsHooks;
+
 class SelectionMaker {
 
 	/**
@@ -101,6 +103,13 @@ class SelectionMaker {
 		$dates = [];
 		$dates['b'] = $startDate;
 		$dates['e'] = $endDate;
+
+		if ( !strpos( $dates['b'], ' ' ) ) {
+			$dates['b'] = $dates['b'] . ' 00:00:00';
+		}
+		if ( !strpos( $dates['e'], ' ' ) ) {
+			$dates['e'] = $dates['e'] . ' 00:00:00';
+		}
 		if ( $dates['b'] !== false && WSStatsHooks::validateDate( $dates['b'] ) === false ) {
 			$dates['b'] = false;
 		}
