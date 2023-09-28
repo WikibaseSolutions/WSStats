@@ -363,7 +363,7 @@ class WSStatsHooks {
 	}
 
 	/**
-	 * Allow extensions to add libraries to Scribunto.
+	 * Add wsstats library to Scribunto.
 	 *
 	 * @link https://www.mediawiki.org/wiki/Extension:Scribunto/Hooks/ScribuntoExternalLibraries
 	 *

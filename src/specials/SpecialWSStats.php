@@ -29,15 +29,15 @@ class SpecialWSStats extends SpecialPage {
 
 		if ( isset ( $_POST['doDBUpdate'] ) ) {
 			$result = $this->doDatabaseMaintenance();
-			$out->addHTML( '<p><strong>' . wfMessage( 'wwstats-special-db-need-update-result', $result ) );
+			$out->addHTML( '<p><strong>' . wfMessage( 'wsstats-special-db-need-update-result', $result ) );
 			$out->addHTML( '</strong></p>' );
 		}
 		$result = $this->getRowsForMaintenance();
 		if ( !empty( $result ) ) {
-			$out->addWikiMsg( 'wwstats-special-db-need-update' );
+			$out->addWikiMsg( 'wsstats-special-db-need-update' );
 			$form = '<form method="post">';
 			$form .= '<input type="submit" name="doDBUpdate"';
-			$form .= 'value="'. wfMessage( 'wwstats-special-db-need-update-btn', count( $result ) ) . '"></form>';
+			$form .= 'value="'. wfMessage( 'wsstats-special-db-need-update-btn', count( $result ) ) . '"></form>';
 			$out->addHTML( $form );
 		}
 		$out->addWikiTextAsContent( WSStatsHooks::getMostViewedPages() );
