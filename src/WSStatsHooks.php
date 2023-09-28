@@ -541,12 +541,14 @@ class WSStatsHooks {
 	 * @return int|mixed|string
 	 */
 	public static function wsstats( Parser &$parser ) : mixed {
+
 		$options = WSStatsHooks::extractOptions(
 			array_slice(
 				func_get_args(),
 				1
 			)
 		);
+
 		$unique  = WSStatsHooks::getOptionSetting(
 			$options,
 			'unique',
@@ -714,11 +716,11 @@ class WSStatsHooks {
 			);
 			if ( $pair[0] !== '//' ) {
 				if ( count( $pair ) === 2 ) {
-					$name = strtolower( trim( $pair[0] ) );
+					$name = trim( $pair[0] );
 					if ( $name == 'template' ) {
 						$value = trim( $pair[1] );
 					} else {
-						$value = strtolower( trim( $pair[1] ) );
+						$value = trim( $pair[1] );
 					}
 
 					$results[ $name ] = $value;

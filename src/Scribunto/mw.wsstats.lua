@@ -16,14 +16,14 @@ function wsstats.setupInterface()
 end
 
 -- wsstats stats
-function wsstats.wsstats( id, unique, startDate, endDate, limit, title )
+function wsstats.stats( id, unique, startDate, endDate, limit, title )
 
-    return php.wsstats( id, unique, startDate, endDate, limit, title )
+    return php.stats( id, unique, startDate, endDate, limit, title )
 end
 
-function wsstats.wsstat( id, unique, startDate, endDate, limit, title )
+function wsstats.stat( id, unique, startDate, endDate, limit, title )
 
-    return php.wsstat( id, unique, startDate, endDate, limit, title )
+    return php.stat( id, unique, startDate, endDate, limit, title )
 end
 
 

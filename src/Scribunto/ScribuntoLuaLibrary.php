@@ -15,8 +15,8 @@ class ScribuntoLuaLibrary extends \Scribunto_LuaLibraryBase {
 	 */
 	public function register(): void {
 		$interfaceFuncs = [
-			'wsstat' => [ $this, 'wsstat' ],
-			'wsstats' => [ $this, 'wsstats' ]
+			'stat' => [ $this, 'stat' ],
+			'stats' => [ $this, 'stats' ]
 		];
 
 		$this->getEngine()->registerInterface( __DIR__ . '/' . 'mw.wsstats.lua', $interfaceFuncs, [] );
@@ -29,7 +29,7 @@ class ScribuntoLuaLibrary extends \Scribunto_LuaLibraryBase {
 	 *
 	 * @return array
 	 */
-	public function wsstat(
+	public function stat(
 		?array $arguments
 	): array {
 
@@ -105,7 +105,7 @@ class ScribuntoLuaLibrary extends \Scribunto_LuaLibraryBase {
 	 *
 	 * @return array
 	 */
-	public function wsstats(
+	public function stats(
 		?array $arguments
 	): array {
 		if ( $arguments === null ) {

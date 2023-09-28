@@ -13,19 +13,18 @@ class SelectionMaker {
 	 *
 	 * @return array
 	 */
-	public function createSelectionNoDates( int $id, string $title, string|bool $dbType ) : array {
+	public function createSelectionNoDates( int $id, string $title, string|bool $dbType ): array {
 		// Set Conditions
 		$countSpecialPages = WSStatsHooks::getConfigSetting( 'countSpecialPages' );
 		if ( !$dbType ) {
 			if ( $countSpecialPages && $title !== '' && $id == "0" ) {
-				$selectConditions = [ "title = " . $title ];
+				$selectConditions = [ "title = '" . $title . "'" ];
 			} else {
 				$selectConditions = [ "page_id = " . $id ];
 			}
 		} else {
 			if ( $countSpecialPages && $title !== '' && $id == "0" ) {
-				$selectConditions = [ "title = " . $title,
-					$dbType ];
+				$selectConditions = [ "title = '" . $title . "'",	$dbType ];
 			} else {
 				$selectConditions = [ "page_id = " . $id,
 					$dbType ];
@@ -49,7 +48,7 @@ class SelectionMaker {
 			// Set Conditions
 			if ( !$dbType ) {
 				if ( $countSpecialPages && $title !== '' && $id == "0" ) {
-					$selectConditions = [ "title = " . $title,
+					$selectConditions = [ "title = '" . $title . "'",
 						'added BETWEEN \'' . $dates["b"] . '\' AND NOW()' ];
 				} else {
 					$selectConditions = [ "page_id = " . $id,
@@ -57,7 +56,7 @@ class SelectionMaker {
 				}
 			} else {
 				if ( $countSpecialPages && $title !== '' && $id == "0" ) {
-					$selectConditions = [ "title = " . $title,
+					$selectConditions = [ "title = '" . $title . "'",
 						$dbType,
 						'added BETWEEN \'' . $dates["b"] . '\' AND NOW()' ];
 				} else {
