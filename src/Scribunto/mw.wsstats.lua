@@ -21,5 +21,10 @@ function wsstats.wsstats( id, unique, startDate, endDate, limit, title )
     return php.wsstats( id, unique, startDate, endDate, limit, title )
 end
 
+function wsstats.wsstat( id, unique, startDate, endDate, limit, title )
+
+    return php.wsstat( id, unique, startDate, endDate, limit, title )
+end
+
 
 return wsstats

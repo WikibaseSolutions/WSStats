@@ -635,7 +635,6 @@ class WSStatsHooks {
 				return "";
 			}
 		}
-		echo "</pre>";
 		return "ok, move along. Nothing to see here..";
 	}
 

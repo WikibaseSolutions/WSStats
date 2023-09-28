@@ -104,10 +104,10 @@ class SelectionMaker {
 		$dates['b'] = $startDate;
 		$dates['e'] = $endDate;
 
-		if ( !strpos( $dates['b'], ' ' ) ) {
+		if ( $dates['b'] !== false && !strpos( $dates['b'], ' ' ) ) {
 			$dates['b'] = $dates['b'] . ' 00:00:00';
 		}
-		if ( !strpos( $dates['e'], ' ' ) ) {
+		if ( $dates['e'] !== false && !strpos( $dates['e'], ' ' ) ) {
 			$dates['e'] = $dates['e'] . ' 00:00:00';
 		}
 		if ( $dates['b'] !== false && WSStatsHooks::validateDate( $dates['b'] ) === false ) {
