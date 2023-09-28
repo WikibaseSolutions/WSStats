@@ -1,6 +1,6 @@
 {
   "name": "WSStats",
-  "version": "1.0.8",
+  "version": "2.0.0",
   "author": [
     "Sen-Sai"
   ],
@@ -19,7 +19,7 @@
         "skip_user_groups": [
           "sysop"
         ],
-        "count_all_usergroups": true,
+        "countSpecialPages" : true,
         "ignore_in_url": [
           "action=edit",
           "veaction=edit"
@@ -34,7 +34,8 @@
     "ParserFirstCallInit": "WSStats\\WSStatsHooks::onParserFirstCallInit",
     "BeforePageDisplay": "WSStats\\WSStatsHooks::onBeforePageDisplay",
     "LoadExtensionSchemaUpdates": "WSStats\\WSStatsHooks::addTables",
-    "AdminLinks": "WSStats\\WSStatsHooks::addToAdminLinks"
+    "AdminLinks": "WSStats\\WSStatsHooks::addToAdminLinks",
+    "ScribuntoExternalLibraries": "\\WSStats\\WSStatsHooks::onScribuntoExternalLibraries"
   },
   "MessagesDirs": {
     "WSStats": [

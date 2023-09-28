@@ -14,6 +14,7 @@
 
 namespace WSStats\export;
 
+use Wikimedia\Rdbms\IResultWrapper;
 use WSStats\WSStatsHooks, extensionRegistry;
 
 /**
@@ -22,12 +23,21 @@ use WSStats\WSStatsHooks, extensionRegistry;
 class WSStatsExport {
 
 	/**
-	 * @param \Wikimedia\Rdbms\IResultWrapper $q
+	 * @var bool
+	 */
+	private bool $specialPages = true;
+
+	public function __construct() {
+		$this->specialPages = WSStatsHooks::getConfigSetting( 'countSpecialPages' );
+	}
+
+	/**
+	 * @param IResultWrapper $q
 	 * @param int $pId
 	 *
 	 * @return string
 	 */
-	public function renderTable( \Wikimedia\Rdbms\IResultWrapper $q, int $pId ) : string {
+	public function renderTable( IResultWrapper $q, int $pId ): string {
 		$data = "{| class=\"sortable wikitable smwtable jquery-tablesorter\"\n";
 		if ( $pId !== 0 ) {
 			$data .= "! " . wfMessage( 'wsstats-page-date' )->text() . "\n";
@@ -38,14 +48,22 @@ class WSStatsExport {
 			$data .= "! " . wfMessage( 'wsstats-page-hits' )->text() . "\n";
 		}
 		while ( $row = $q->fetchRow() ) {
-			$pTitle = WSStatsHooks::getPageTitleFromID( $row['page_id'] );
+			if ( $row['title'] === '' ) {
+				$pTitle = WSStatsHooks::getPageTitleFromID( $row['page_id'] );
+			} else {
+				$pTitle = $row['title'];
+			}
 			if ( !is_null( $pTitle ) ) {
 				$data .= "|-\n";
 				if ( $pId !== 0 ) {
 					$data .= "| " . $row['Date'] . "\n";
 					$data .= "| " . $row['count'] . "\n";
 				} else {
-					$data .= "| " . $row['page_id'] . "\n";
+					if ( $row['isSpecialPage'] != "1" ) {
+						$data .= "| " . $row['page_id'] . "\n";
+					} else {
+						$data .= "| \n";
+					}
 					$data .= "| " . $pTitle . "\n";
 					$data .= "| " . $row['count'] . "\n";
 				}
@@ -58,16 +76,20 @@ class WSStatsExport {
 	}
 
 	/**
-	 * @param \Wikimedia\Rdbms\IResultWrapper $q
+	 * @param IResultWrapper $q
 	 * @param int $pId
 	 *
 	 * @return string
 	 */
-	public function renderCSV( \Wikimedia\Rdbms\IResultWrapper $q, $pId ) : string {
+	public function renderCSV( IResultWrapper $q, $pId ): string {
 		$data = '';
 		if ( $pId === 0 ) {
 			while ( $row = $q->fetchRow() ) {
-				$data .= $row['page_id'] . ";" . $row['count'] . ",";
+				if ( $row['page_id'] == '0' ) {
+					$data .= ";" . $row['title'] . $row['count'] . ",";
+				} else {
+					$data .= $row['page_id'] . ";" . $row['title'] . $row['count'] . ",";
+				}
 			}
 		} else {
 			while ( $row = $q->fetchRow() ) {
@@ -82,11 +104,34 @@ class WSStatsExport {
 	}
 
 	/**
+	 * @param IResultWrapper $q
+	 * @param int $pId
+	 *
+	 * @return array
+	 */
+	public function renderLua( IResultWrapper $q, $pId ): array {
+		$result    = [];
+		$t         = 0;
+		while ( $row = $q->fetchRow() ) {
+			if ( $pId === 0 ) {
+				$result[$t][wfMessage( 'wsstats-page-id' )->text()] = $row['page_id'];
+				$result[$t][wfMessage( 'wsstats-page-title' )->text()] = $row['title'];
+				$result[$t][wfMessage( 'wsstats-page-hits' )->text()] = $row['count'];
+			} else {
+				$result[$t][wfMessage( 'wsstats-page-date' )->text()] = $row['Date'];
+				$result[$t][wfMessage( 'wsstats-page-hits' )->text()] = $row['count'];
+			}
+			$t++;
+			}
+		return $result;
+	}
+
+	/**
 	 * @param string $name Name of the extension
 	 *
 	 * @return mixed
 	 */
-	private function extensionInstalled( $name ) {
+	private function extensionInstalled( string $name ) {
 		return extensionRegistry::getInstance()->isLoaded( $name );
 	}
 
@@ -98,10 +143,10 @@ class WSStatsExport {
 	 * @return string
 	 */
 	public function renderWSArrays(
-		\Wikimedia\Rdbms\IResultWrapper $q,
+		IResultWrapper $q,
 		string $wsArrayVariableName,
 		int $pId
-	) : string {
+	): string {
 		global $IP;
 		if ( !$this->extensionInstalled( 'WSArrays' ) ) {
 			return "";
