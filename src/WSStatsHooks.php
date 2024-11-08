@@ -182,6 +182,8 @@ class WSStatsHooks {
 
 		$updater->addExtensionField( self::DBTABLE, 'title', __DIR__ . "/../sql/WSStatsAddTitle.$dbt" );
 		$updater->addExtensionField( self::DBTABLE, 'isSpecialPage', __DIR__ . "/../sql/WSStatsAddSpecialBool.$dbt" );
+		$updater->addExtensionIndex(self::DBTABLE, 'idx_wsps_page_id', __DIR__ . "/../sql/WSStatsAddIndexPageId.$dbt" );
+		$updater->addExtensionIndex(self::DBTABLE, 'idx_wsps_user_id', __DIR__ . "/../sql/WSStatsAddIndexUserId.$dbt" );
 
 
 		return true;
