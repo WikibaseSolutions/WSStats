@@ -1,2 +1,2 @@
 Alter table WSPS
-ADD INDEX idx_page_id (page_id);
+ADD INDEX idx_wsps_page_id (page_id);

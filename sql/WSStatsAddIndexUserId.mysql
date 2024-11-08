@@ -1,2 +1,2 @@
 Alter table WSPS
-ADD INDEX idx_user_id (user_id);
+ADD INDEX idx_wsps_user_id (user_id);
