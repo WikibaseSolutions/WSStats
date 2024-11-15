@@ -1,7 +1,7 @@
 # WSStats
 This MediaWiki 1.39.x extension counts pageviews by user
 
-* Version 2.0.2 : Index set on Added.
+* Version 2.0.2 : Index set on Added. Thanks to shreenivasan from Pegasystems for the Database optimalisation updates. 
 * Version 2.0.1 : Fixed sql table https://github.com/WikibaseSolutions/WSStats/pull/8 add indexing to user and page https://github.com/WikibaseSolutions/WSStats/pull/9
 * Version 2.0.0 : REL 1.39 only. Added statistics for Special Pages. Lua equivalent functions for statistics. Special Page added.
 * Version 1.0.8 : Removed global references
