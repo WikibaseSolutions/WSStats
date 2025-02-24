@@ -40,12 +40,12 @@ class WSStatsExport {
 	public function renderTable( IResultWrapper $q, int $pId ): string {
 		$data = "{| class=\"sortable wikitable smwtable jquery-tablesorter\"\n";
 		if ( $pId !== 0 ) {
-			$data .= "! " . wfMessage( 'wsstats-page-date' )->text() . "\n";
-			$data .= "! " . wfMessage( 'wsstats-page-hits' )->text() . "\n";
+			$data .= '! ' . wfMessage( 'wsstats-page-date' )->text() . "\n";
+			$data .= '! ' . wfMessage( 'wsstats-page-hits' )->text() . "\n";
 		} else {
-			$data .= "! " . wfMessage( 'wsstats-page-id' )->text() . "\n";
-			$data .= "! " . wfMessage( 'wsstats-page-title' )->text() . "\n";
-			$data .= "! " . wfMessage( 'wsstats-page-hits' )->text() . "\n";
+			$data .= '! ' . wfMessage( 'wsstats-page-id' )->text() . "\n";
+			$data .= '! ' . wfMessage( 'wsstats-page-title' )->text() . "\n";
+			$data .= '! ' . wfMessage( 'wsstats-page-hits' )->text() . "\n";
 		}
 		while ( $row = $q->fetchRow() ) {
 			if ( $row['title'] === '' ) {
@@ -56,16 +56,16 @@ class WSStatsExport {
 			if ( !is_null( $pTitle ) ) {
 				$data .= "|-\n";
 				if ( $pId !== 0 ) {
-					$data .= "| " . $row['Date'] . "\n";
-					$data .= "| " . $row['count'] . "\n";
+					$data .= '| ' . $row['Date'] . "\n";
+					$data .= '| ' . $row['count'] . "\n";
 				} else {
 					if ( $row['isSpecialPage'] != "1" ) {
-						$data .= "| " . $row['page_id'] . "\n";
+						$data .= '| ' . $row['page_id'] . "\n";
 					} else {
 						$data .= "| \n";
 					}
-					$data .= "| " . $pTitle . "\n";
-					$data .= "| " . $row['count'] . "\n";
+					$data .= '| ' . $pTitle . "\n";
+					$data .= '| ' . $row['count'] . "\n";
 				}
 				$data .= "|-\n";
 			}
@@ -86,14 +86,14 @@ class WSStatsExport {
 		if ( $pId === 0 ) {
 			while ( $row = $q->fetchRow() ) {
 				if ( $row['page_id'] == '0' ) {
-					$data .= ";" . $row['title'] . $row['count'] . ",";
+					$data .= ';' . $row['title'] . $row['count'] . ',';
 				} else {
-					$data .= $row['page_id'] . ";" . $row['title'] . $row['count'] . ",";
+					$data .= $row['page_id'] . ';' . $row['title'] . $row['count'] . ',';
 				}
 			}
 		} else {
 			while ( $row = $q->fetchRow() ) {
-				$data .= $row['Date'] . ";" . $row['count'] . ",";
+				$data .= $row['Date'] . ';' . $row['count'] . ',';
 			}
 		}
 
@@ -129,9 +129,9 @@ class WSStatsExport {
 	/**
 	 * @param string $name Name of the extension
 	 *
-	 * @return mixed
+	 * @return bool
 	 */
-	private function extensionInstalled( string $name ) {
+	private function extensionInstalled( string $name ): bool {
 		return extensionRegistry::getInstance()->isLoaded( $name );
 	}
 
@@ -176,7 +176,7 @@ class WSStatsExport {
 
 		$wsWrapper->on( $wsArrayVariableName )->set( $result );
 
-		return "";
+		return '';
 	}
 
 }
