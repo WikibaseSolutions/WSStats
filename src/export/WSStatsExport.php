@@ -136,7 +136,7 @@ class WSStatsExport {
 	}
 
 	/**
-	 * @param mysqli_result $q
+	 * @param IResultWrapper $q
 	 * @param string $wsArrayVariableName
 	 * @param int $pId
 	 *

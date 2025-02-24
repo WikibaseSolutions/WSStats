@@ -213,8 +213,7 @@ class WSStatsHooks {
 		}
 
 		$lb               = MediaWikiServices::getInstance()->getDBLoadBalancer();
-		$dbr              = $lb->getConnectionRef( DB_REPLICA );
-		$dbResult         = array();
+		$dbr              = $lb->getConnection( DB_REPLICA );
 		$selectWhat       = [
 			'page_id',
 			'title',
@@ -226,7 +225,6 @@ class WSStatsHooks {
 			'ORDER BY' => 'count DESC',
 			'LIMIT'    => 1
 		];
-		$selectConditions = array();
 
 		$selectionMaker = new SelectionMaker();
 
@@ -247,7 +245,7 @@ class WSStatsHooks {
 			$selectOptions
 		);
 		$dbResult = $res->fetchRow();
-		if ( !isset( $dbResult['count'] ) || empty( $dbResult['count'] ) ) {
+		if ( empty( $dbResult['count'] ) ) {
 			return 0;
 		} else {
 			return $dbResult['count'];
@@ -267,9 +265,9 @@ class WSStatsHooks {
 	 */
 	public static function getMostViewedPages(
 		$dates = false,
-		string $render = "table",
+		string $render = 'table',
 		bool $unique = false,
-		string $variable = "",
+		string $variable = '',
 		int $limit = 10,
 		int $pId = 0,
 		string $pTitle = ''
@@ -283,15 +281,14 @@ class WSStatsHooks {
 
 
 		$lb       = MediaWikiServices::getInstance()->getDBLoadBalancer();
-		$dbr      = $lb->getConnectionRef( DB_REPLICA );
-		$dbResult = array();
+		$dbr      = $lb->getConnection( DB_REPLICA );
 
 		if ( $pId === 0 ) {
 			$selectWhat    = [
 				'page_id',
 				'title',
 				'isSpecialPage',
-				"count" => 'COUNT(' . $cnt . ')'
+				'count' => 'COUNT(' . $cnt . ')'
 			];
 			$selectOptions = [
 				'GROUP BY' => 'title',
@@ -304,7 +301,7 @@ class WSStatsHooks {
 				'title',
 				'isSpecialPage',
 				'Date'  => 'DATE(added)',
-				"count" => 'COUNT(' . $cnt . ')'
+				'count' => 'COUNT(' . $cnt . ')'
 			];
 			$selectOptions = [
 				'GROUP BY' => 'Date',
@@ -313,7 +310,7 @@ class WSStatsHooks {
 			];
 		}
 
-		$selectConditions = array();
+		$selectConditions = [];
 
 		if ( $pId !== 0 ) {
 			$selectConditions[] = "page_id = '" . $pId . "'";
@@ -344,21 +341,21 @@ class WSStatsHooks {
 			$selectOptions
 		);
 
-		$data = "";
+		$data = '';
 		if ( $res->numRows() > 0 ) {
 
 			$renderMethod = new WSStatsExport();
 			$data = match ( $render ) {
-				"table" => $renderMethod->renderTable( $res,
+				'table' => $renderMethod->renderTable( $res,
 					$pId ),
-				"csv" => $renderMethod->renderCSV( $res,
+				'csv' => $renderMethod->renderCSV( $res,
 					$pId ),
-				"wsarrays" => $renderMethod->renderWSArrays( $res,
+				'wsarrays' => $renderMethod->renderWSArrays( $res,
 					$variable,
 					$pId ),
-				"lua" =>$renderMethod->renderLua( $res,
+				'lua' =>$renderMethod->renderLua( $res,
 					$pId ),
-				default => "",
+				default => '',
 			};
 		}
 
@@ -451,10 +448,7 @@ class WSStatsHooks {
 		$ignoreInUrl = self::getConfigSetting( 'ignore_in_url' );
 		if ( $ignoreInUrl !== false && is_array( $ignoreInUrl ) && $ref !== false ) {
 			foreach ( $ignoreInUrl as $single ) {
-				if ( strpos(
-					     $ref,
-					     $single
-				     ) !== false ) {
+				if ( str_contains( $ref, $single ) ) {
 					return true;
 				}
 			}
@@ -640,7 +634,7 @@ class WSStatsHooks {
 				return "";
 			}
 		}
-		return "ok, move along. Nothing to see here..";
+		return 'ok, move along. Nothing to see here..';
 	}
 
 	/**
@@ -651,11 +645,11 @@ class WSStatsHooks {
 	 */
 	private static function deleteRecord( string $table, int|string $pId ): bool {
 		$lb          = MediaWikiServices::getInstance()->getDBLoadBalancer();
-		$dbw         = $lb->getConnectionRef( DB_PRIMARY );
+		$dbw         = $lb->getConnection( DB_PRIMARY );
 		try {
 			$res = $dbw->delete(
 				$table,
-				"page_id = " . $pId,
+				'page_id = ' . $pId,
 				__METHOD__
 			);
 		} catch ( Exception $e ) {
@@ -679,7 +673,7 @@ class WSStatsHooks {
 	 */
 	public static function insertRecord( string $table, array $vals ): bool {
 		$lb          = MediaWikiServices::getInstance()->getDBLoadBalancer();
-		$dbw         = $lb->getConnectionRef( DB_PRIMARY );
+		$dbw         = $lb->getConnection( DB_PRIMARY );
 		try {
 			$res = $dbw->insert(
 				$table,
@@ -710,7 +704,7 @@ class WSStatsHooks {
 	 * @return array $results
 	 */
 	public static function extractOptions( array $options ) {
-		$results = array();
+		$results = [];
 		foreach ( $options as $option ) {
 			$pair = explode(
 				'=',

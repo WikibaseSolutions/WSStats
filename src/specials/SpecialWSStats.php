@@ -51,8 +51,8 @@ class SpecialWSStats extends SpecialPage {
 	* @return array
 	 */
 	private function getRowsForMaintenance(): array {
-	$lb       = MediaWikiServices::getInstance()->getDBLoadBalancer();
-		$dbr      = $lb->getConnectionRef( DB_REPLICA );
+		$lb  = MediaWikiServices::getInstance()->getDBLoadBalancer();
+		$dbr = $lb->getConnection( DB_REPLICA );
 		global $wgDBprefix;
 		$res = $dbr->select(
 			$wgDBprefix . WSStatsHooks::DBTABLE,
