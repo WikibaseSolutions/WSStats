@@ -4,6 +4,9 @@ namespace WSStats\Helpers;
 
 use WSStats\WSStatsHooks;
 
+/**
+ * Class to help define SQL Query
+ */
 class SelectionMaker {
 
 	/**
@@ -17,16 +20,16 @@ class SelectionMaker {
 		// Set Conditions
 		$countSpecialPages = WSStatsHooks::getConfigSetting( 'countSpecialPages' );
 		if ( !$dbType ) {
-			if ( $countSpecialPages && $title !== '' && $id == "0" ) {
+			if ( $countSpecialPages && $title !== '' && $id == '0' ) {
 				$selectConditions = [ "title = '" . $title . "'" ];
 			} else {
-				$selectConditions = [ "page_id = " . $id ];
+				$selectConditions = [ 'page_id = ' . $id ];
 			}
 		} else {
-			if ( $countSpecialPages && $title !== '' && $id == "0" ) {
+			if ( $countSpecialPages && $title !== '' && $id == '0' ) {
 				$selectConditions = [ "title = '" . $title . "'",	$dbType ];
 			} else {
-				$selectConditions = [ "page_id = " . $id,
+				$selectConditions = [ 'page_id = ' . $id,
 					$dbType ];
 			}
 		}
@@ -49,42 +52,42 @@ class SelectionMaker {
 			if ( !$dbType ) {
 				if ( $countSpecialPages && $title !== '' && $id == "0" ) {
 					$selectConditions = [ "title = '" . $title . "'",
-						'added BETWEEN \'' . $dates["b"] . '\' AND NOW()' ];
+						'added BETWEEN \'' . $dates['b'] . '\' AND NOW()' ];
 				} else {
 					$selectConditions = [ "page_id = " . $id,
-						'added BETWEEN \'' . $dates["b"] . '\' AND NOW()' ];
+						'added BETWEEN \'' . $dates['b'] . '\' AND NOW()' ];
 				}
 			} else {
-				if ( $countSpecialPages && $title !== '' && $id == "0" ) {
+				if ( $countSpecialPages && $title !== '' && $id == '0' ) {
 					$selectConditions = [ "title = '" . $title . "'",
 						$dbType,
-						'added BETWEEN \'' . $dates["b"] . '\' AND NOW()' ];
+						'added BETWEEN \'' . $dates['b'] . '\' AND NOW()' ];
 				} else {
 					$selectConditions = [ "page_id = " . $id,
 						$dbType,
-						'added BETWEEN \'' . $dates["b"] . '\' AND NOW()' ];
+						'added BETWEEN \'' . $dates['b'] . '\' AND NOW()' ];
 				}
 			}
 			//$sql = 'SELECT page_id, COUNT(' . $cnt . ') AS count FROM ' . $wgDBprefix . 'WSPS WHERE page_id=\'' . $id . '\' ' . $dbType . 'AND added BETWEEN \'' . $dates["b"] . '\' AND NOW()';
 		} else {
 			// Set Conditions
 			if ( !$dbType ) {
-				if ( $countSpecialPages && $title !== '' && $id == "0" ) {
-					$selectConditions = [ "title = " . $title,
-						'added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\'' ];
+				if ( $countSpecialPages && $title !== '' && $id == '0' ) {
+					$selectConditions = [ 'title = ' . $title,
+						'added >= \'' . $dates['b'] . '\' AND added <= \'' . $dates['e'] . '\'' ];
 				} else {
-					$selectConditions = [ "page_id = " . $id,
-						'added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\'' ];
+					$selectConditions = [ 'page_id = ' . $id,
+						'added >= \'' . $dates['b'] . '\' AND added <= \'' . $dates['e'] . '\'' ];
 				}
 			} else {
-				if ( $countSpecialPages && $title !== '' && $id == "0" ) {
-					$selectConditions = [ "title = " . $title,
+				if ( $countSpecialPages && $title !== '' && $id == '0' ) {
+					$selectConditions = [ 'title = ' . $title,
 						$dbType,
-						'added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\'' ];
+						'added >= \'' . $dates['b'] . '\' AND added <= \'' . $dates['e'] . '\'' ];
 				} else {
-					$selectConditions = [ "page_id = " . $id,
+					$selectConditions = [ 'page_id = ' . $id,
 						$dbType,
-						'added >= \'' . $dates["b"] . '\' AND added <= \'' . $dates['e'] . '\'' ];
+						'added >= \'' . $dates['b'] . '\' AND added <= \'' . $dates['e'] . '\'' ];
 				}
 			}
 		}
