@@ -267,8 +267,8 @@ end
 return p
 ```
 
-To get view using LUA example :
+To get view susing LUA example :
 
 ```
-{{#invoke:wsstats|stat|id=1|startDate=2023-09-25|endDate=2025-03-01}}
+{{#invoke:WSStats|stat|id=1|startDate=2023-09-25|endDate=2025-03-01}}
 ```
