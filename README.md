@@ -1,6 +1,7 @@
 # WSStats
-This MediaWiki 1.39.x extension counts pageviews by user
+This MediaWiki 1.43.x extension counts pageviews by user
 
+* Version 2.0.3 : Updated LUA docs
 * Version 2.0.2 : Index set on Added. Thanks to shreenivasan from Pegasystems for the Database optimalisation updates. 
 * Version 2.0.1 : Fixed sql table https://github.com/WikibaseSolutions/WSStats/pull/8 add indexing to user and page https://github.com/WikibaseSolutions/WSStats/pull/9
 * Version 2.0.0 : REL 1.39 only. Added statistics for Special Pages. Lua equivalent functions for statistics. Special Page added.
@@ -163,14 +164,14 @@ This returns a table from 2018-02-01 00:00:00 up to 2018-02-08 00:00:00 ( so not
 This returns a csv
 ```
 {{#wsstats:stats
-|format:csv}}
+|format=csv}}
 ```
 
 #### Get the top ten pages sorted by hits and insert in a WSArrays variable
 This returns nothing but only sets WSArray key. Nothing happens when the WSArrays extension is not installed
 ```
 {{#wsstats:stats
-|format:wsarrays
+|format=wsarrays
 |name=<wsarray key name>}}
 ```
 ```
@@ -235,25 +236,39 @@ If you create a Module called WSStats and you add the following content :
 ```lua
 local p = {}
 
+--[[
+This function returns a Lua table with stats. You can test it in the debug console:
+=mw.logObject(p.stats(mw.getCurrentFrame()))
+--]]
 function p.stats(frame)
   stats = mw.wsstats.stats( frame.args )
   return stats
 
 end
 
+--[[
+This function returns an ArrayFunctions export, it requires the ArrayFunctions extension. Example invoke:
+{{#af_print:{{#invoke:WSStats|afExportStats}} }}
+--]]
+function p.afExportStats(frame)
+  stats = mw.wsstats.stats( frame.args )
+  return mw.af.export(stats)
+end
+
+--[[ 
+This function returns an integer number of views for a specific page. Example invoke:
+{{#invoke:wsstats|stat|id=1|startDate=2023-09-25|endDate=2023-09-26}}
+--]]
 function p.stat(frame)
   stat = mw.wsstats.stat( frame.args )
   return stat
-
 end
 
 return p
 ```
 
-You can then do calls like :
+To get view using LUA example :
+
 ```
-{{#invoke:wsstats|stats}} // returns a Lua table
-```
-```
-{{#invoke:wsstats|stat|id=1|startDate=2023-09-25|endDate=2023-09-26}}
+{{#invoke:wsstats|stat|id=1|startDate=2023-09-25|endDate=2025-03-01}}
 ```
