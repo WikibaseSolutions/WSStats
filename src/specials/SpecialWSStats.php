@@ -54,20 +54,20 @@ class SpecialWSStats extends SpecialPage {
 		$lb  = MediaWikiServices::getInstance()->getDBLoadBalancer();
 		$dbr = $lb->getConnection( DB_REPLICA );
 		global $wgDBprefix;
+		$selectConditions[] = "page_id != 0";
+		$selectConditions[] = "title = ''";
 		$res = $dbr->select(
 			$wgDBprefix . WSStatsHooks::DBTABLE,
-			'*',
-			[],
+			'id, page_id',
+			$selectConditions,
 			__METHOD__,
 			[]
 		);
 		$result = [];
 		if ( $res->numRows() > 0 ) {
 			while ( $row = $res->fetchRow() ) {
-				if ( $row['page_id'] !== 0 && empty( $row['title'] ) ) {
-					$id = $row['id'];
-					$result[$id] = WSStatsHooks::getPageTitleFromID( $row['page_id'] );
-				}
+				$id = $row['id'];
+				$result[$id] = WSStatsHooks::getPageTitleFromID( $row['page_id'] );
 			}
 		}
 		return $result;
@@ -81,8 +81,12 @@ class SpecialWSStats extends SpecialPage {
 		if ( !empty( $result ) ) {
 			$lb       = MediaWikiServices::getInstance()->getDBLoadBalancer();
 			$dbw      = $lb->getConnectionRef( DB_PRIMARY );
-			foreach( $result as $id=>$title ) {
-				$dbw->update( WSStatsHooks::DBTABLE, [ 'title' => $title ], [ 'id' => $id ] );
+			foreach( $result as $id => $title ) {
+				if ( $title === null ) {
+					$dbw->delete( WSStatsHooks::DBTABLE, [ 'id' => $id ] );
+				} else {
+					$dbw->update( WSStatsHooks::DBTABLE, [ 'title' => $title ], [ 'id' => $id ] );
+				}
 			}
 		}
 		return count( $result );
