@@ -14,5 +14,5 @@
 	"wsstats-special-list": "Top visited pages of this wiki",
 	"wsstats-special-db-need-update": "The WSStats Database needs an update to return correct values.",
 	"wsstats-special-db-need-update-btn": "Click here to update $1 records in the database.",
-	"wsstats-special-db-need-update-result": "$1 records haven been successfully updated"
+	"wsstats-special-db-need-update-result": "Job Queued and will process updates in batches"
 }

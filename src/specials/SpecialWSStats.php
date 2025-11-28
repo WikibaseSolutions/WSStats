@@ -2,6 +2,7 @@
 
 namespace WSStats\specials;
 
+use WSStats\Jobs\WSStatsFixTitlesJob;
 use MediaWiki\MediaWikiServices;
 use SpecialPage;
 use WSStats\WSStatsHooks;
@@ -28,29 +29,31 @@ class SpecialWSStats extends SpecialPage {
 		$out->addWikiMsg( 'wsstats-special-list' );
 
 		if ( isset ( $_POST['doDBUpdate'] ) ) {
-			$result = $this->doDatabaseMaintenance();
-			$out->addHTML( '<p><strong>' . wfMessage( 'wsstats-special-db-need-update-result', $result ) );
+			MediaWikiServices::getInstance()
+				->getJobQueueGroupFactory()
+				->makeJobQueueGroup()
+				->push( new WSStatsFixTitlesJob() );
+			$out->addHTML( '<p><strong>' . wfMessage( 'wsstats-special-db-need-update-result' ) );
 			$out->addHTML( '</strong></p>' );
-		}
-		$result = $this->getRowsForMaintenance();
-		if ( !empty( $result ) ) {
-			$out->addWikiMsg( 'wsstats-special-db-need-update' );
-			$form = '<form method="post">';
-			$form .= '<input type="submit" name="doDBUpdate"';
-			$form .= 'value="'. wfMessage( 'wsstats-special-db-need-update-btn', count( $result ) ) . '"></form>';
-			$out->addHTML( $form );
+		} else {
+			$result = $this->getRowCountForMaintenance();
+			if ( $result !== 0 ) {
+				$out->addWikiMsg( 'wsstats-special-db-need-update' );
+				$form = '<form method="post">';
+				$form .= '<input type="submit" name="doDBUpdate"';
+				$form .= 'value="' . wfMessage( 'wsstats-special-db-need-update-btn', $result ) . '"></form>';
+				$out->addHTML( $form );
+			}
 		}
 		$out->addWikiTextAsContent( WSStatsHooks::getMostViewedPages() );
-		//$this->databaseMaintenance();
-
 		return '';
 	}
 
 
 	/**
-	* @return array
+	* @return int
 	 */
-	private function getRowsForMaintenance(): array {
+	private function getRowCountForMaintenance(): int {
 		$lb  = MediaWikiServices::getInstance()->getDBLoadBalancer();
 		$dbr = $lb->getConnection( DB_REPLICA );
 		global $wgDBprefix;
@@ -58,39 +61,16 @@ class SpecialWSStats extends SpecialPage {
 		$selectConditions[] = "title = ''";
 		$res = $dbr->select(
 			$wgDBprefix . WSStatsHooks::DBTABLE,
-			'id, page_id',
+			[ "cnt" => 'COUNT(*)' ],
 			$selectConditions,
 			__METHOD__,
 			[]
 		);
-		$result = [];
-		if ( $res->numRows() > 0 ) {
-			while ( $row = $res->fetchRow() ) {
-				$id = $row['id'];
-				$result[$id] = WSStatsHooks::getPageTitleFromID( $row['page_id'] );
-			}
+		$count = (int)$res->fetchRow()['cnt'];
+		if ( $count > 0 ) {
+			return $count;
+		} else {
+			return 0;
 		}
-		return $result;
 	}
-
-	/**
-	* @return int
-	 */
-	private function doDatabaseMaintenance(): int {
-		$result = $this->getRowsForMaintenance();
-		if ( !empty( $result ) ) {
-			$lb       = MediaWikiServices::getInstance()->getDBLoadBalancer();
-			$dbw      = $lb->getConnectionRef( DB_PRIMARY );
-			foreach( $result as $id => $title ) {
-				if ( $title === null ) {
-					$dbw->delete( WSStatsHooks::DBTABLE, [ 'id' => $id ] );
-				} else {
-					$dbw->update( WSStatsHooks::DBTABLE, [ 'title' => $title ], [ 'id' => $id ] );
-				}
-			}
-		}
-		return count( $result );
-
-	}
-
 }
