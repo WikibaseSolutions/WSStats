@@ -30,9 +30,8 @@ class WSStatsFixTitlesJob extends Job implements GenericParameterJob{
 		$lb  = MediaWikiServices::getInstance()->getDBLoadBalancer();
 		$dbr = $lb->getConnection( DB_REPLICA );
 		$dbw = $lb->getConnection( DB_PRIMARY );
-		global $wgDBprefix;
 		$res = $dbr->select(
-			$wgDBprefix . WSStatsHooks::DBTABLE,
+			WSStatsHooks::DBTABLE,
 			[ 'id', 'page_id' ],
 			[
 				"page_id != 0",
@@ -43,16 +42,17 @@ class WSStatsFixTitlesJob extends Job implements GenericParameterJob{
 		);
 
 		$count = 0;
-		while ( $row = $res->fetchRow() ) {
+
+		foreach( $res as $row ) {
 			$count++;
-			$title = WSStatsHooks::getPageTitleFromID( (int)$row['page_id'] );
+			$title = WSStatsHooks::getPageTitleFromID( (int)$row->page_id );
 			if ( $title === null ) {
-				$dbw->delete( $wgDBprefix . WSStatsHooks::DBTABLE, [ 'id' => $row['id'] ], __METHOD__ );
+				$dbw->delete( WSStatsHooks::DBTABLE, [ 'id' => $row->id ], __METHOD__ );
 			} else {
 				$dbw->update(
-					$wgDBprefix . WSStatsHooks::DBTABLE,
+					WSStatsHooks::DBTABLE,
 					[ 'title' => $title ],
-					[ 'id' => $row['id'] ],
+					[ 'id' => $row->id ],
 					__METHOD__
 				);
 			}

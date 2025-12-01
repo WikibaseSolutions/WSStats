@@ -56,15 +56,10 @@ class SpecialWSStats extends SpecialPage {
 	private function getRowCountForMaintenance(): int {
 		$lb  = MediaWikiServices::getInstance()->getDBLoadBalancer();
 		$dbr = $lb->getConnection( DB_REPLICA );
-		global $wgDBprefix;
 		$selectConditions[] = "page_id != 0";
 		$selectConditions[] = "title = ''";
 		$res = $dbr->select(
-			$wgDBprefix . WSStatsHooks::DBTABLE,
-			[ "cnt" => 'COUNT(*)' ],
-			$selectConditions,
-			__METHOD__,
-			[]
+			WSStatsHooks::DBTABLE, [ "cnt" => 'COUNT(*)' ], $selectConditions, __METHOD__, []
 		);
 		$count = (int)$res->fetchRow()['cnt'];
 		if ( $count > 0 ) {
